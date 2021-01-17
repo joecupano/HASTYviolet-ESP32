@@ -50,7 +50,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
                 analogWrite(LED_RED, ((rgb >> 16) & 0xFF));
                 analogWrite(LED_GREEN, ((rgb >> 8) & 0xFF));
-                analogWrite(LED_BLUE, ((rgb >> 0) & 0xFF));
+                analogWrite(LED_BLUE, ((rgb >> 0) & 0xFF));#
             }
 
             break;

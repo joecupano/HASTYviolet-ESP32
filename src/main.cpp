@@ -210,7 +210,7 @@ void initSPIFFS() {
     Serial.println("ERR: SPIFFS mounting");
     return;
   }
-  Serial.println("100: SPIFFs initialized...");
+  Serial.println("100: SPIFFs initialized");
 }
 
 void loadJsonFile() {
@@ -245,6 +245,7 @@ void loadJsonFile() {
     txpwr = int(doc["CURRENT"]["txpwr"]);
     configFile.close();
   }
+  Serial.println("200: JSON loaded");
 }
 
 void initWiFi() {
@@ -255,7 +256,7 @@ void initWiFi() {
   }
   Serial.println("300: WiFi MAC " + WiFi.macAddress());
   Serial.println("310: WiFi IP  " + WiFi.localIP());
-  Serial.println("320: WiFi CL initialized... ");
+  Serial.println("320: WiFi CL initialized");
 }
 
 void initWiFiAP() {
@@ -264,7 +265,7 @@ void initWiFiAP() {
   IPAddress ip = WiFi.softAPIP();
   Serial.println("300: WiFi MAC " + WiFi.macAddress());
   Serial.println("310: WiFi IP  " + ip);
-  Serial.println("320: WiFi AP initialized... ");
+  Serial.println("320: WiFi AP initialized");
 }
 
 void initWebServer() {
@@ -272,20 +273,21 @@ void initWebServer() {
   server.on("/index.css", HTTP_GET, onStyleRequest);
   server.on("/index.js",  HTTP_GET, onScriptRequest);
   server.begin();
-  Serial.println("400: Webserver initialized...");
+  Serial.println("400: Webserver initialized");
 }
 
 void initWebSockets() {
   // Websocket Handler
   webSocket.begin();
   webSocket.onEvent(onWebSocketEvent);
+  Serial.println("500: Websockets initialized");
 }
 
 void initOLED() {
   // Start OLED 
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
-  Heltec.display->setFont(ArialMT_Plain_10); Serial.println("500: OLED Initialized ...");
+  Heltec.display->setFont(ArialMT_Plain_10); Serial.println("600: OLED Initialized");
 }
 
 void initLORA() {
@@ -299,7 +301,7 @@ void initLORA() {
   LoRa.setTxPower(txpwr,RF_PACONFIG_PASELECT_PABOOST);
   //LoRa.setSyncWord(0x12);   //0x34
   //LoRa.setPreambleLength(8);
-  Serial.println("500: LoRa initialized..."); 
+  Serial.println("700: LoRa initialized"); 
 }
 
 void sendLORA(String outgoing)
@@ -311,13 +313,13 @@ void sendLORA(String outgoing)
   LoRa.write(outgoing.length());             // add payload length
   LoRa.print(outgoing);                      // add payload
   LoRa.endPacket();                          // finish packet and send it
-  Serial.print("3000: Sent LoRa packet '");
+  Serial.println("3000: Sent LoRa packet");
 }
 
 void receiveLORA(int packetSize)
 {
   // received a packet
-  Serial.print("2000: Received LoRa packet '");
+  Serial.println("2000: Received LoRa packet");
   if (packetSize == 0) return;               // if there's no packet, return
   // read packet header bytes:
   int recipient = LoRa.read();               // recipient address
@@ -356,17 +358,16 @@ void setup() {
   initSerial();
   initSPIFFS();
   loadJsonFile();
-  
+  delay(1000);
   //initWiFi();
   WiFi.begin("Excelsior", "19144966520");
   while(WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.print(".");
   }
   //Serial.println("300: WiFi MAC " + WiFi.macAddress());
   //Serial.println("310: WiFi IP  " + WiFi.localIP());
-  Serial.println("320: WiFi CL initialized... ");
-  
+  Serial.println("300: WiFi CL initialized");
+  delay(1000);
   initWebServer();
   initWebSockets();
    
