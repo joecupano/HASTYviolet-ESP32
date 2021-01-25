@@ -963,9 +963,9 @@ sup, sub {
 #
 #   hasVIOLET Client Javascript
 #
-#       Ⓒ2020 Joe Cupano, NE2Z
+#       Ⓒ2021 Joe Cupano, NE2Z
 #
-#       RELEASE: 20201224-2100
+#       RELEASE: 20210117-0200
 #       LICENSE: GPLv2
 #
 #
@@ -1076,8 +1076,8 @@ var previous_entry = "";
 var current_entry = "";
 var new_entry;
 var myHostname = location.hostname;
-var wsURI = "ws://" + myHostname + ":8000/ws";					//  TEST Websocket URI 
-var url = "http://" + myHostname + ":8000/cfg/hasVIOLET.json";		//  JSON file location
+var wsURI = "ws://" + myHostname + ":8000/ws";			 	     	//  TEST Websocket URI 
+var url = "http://" + myHostname + "/hasVIOLET.json";	      	    //  JSON file location
 var getHasJson = new XMLHttpRequest();								//  Holds JSON from Radio
 // var setRadioCfg = new XMLHttpRequest();					        //  Replace with JSON to Radio via Websocket
 
@@ -1429,8 +1429,8 @@ function btnSEND() {
 	/* Anything else is a message to be TX */
 	} else {
 		socket.send("TX:" + msgENTERED);
-		rxwinMSG("TX: "+ msgENTERED);
-		console.log("CMD: SEND:" + msgENTERED);
+		rxwinMSG("TX:"+ msgENTERED);
+		console.log("CMD: TX:" + msgENTERED);
 		previous_operation = "SENT";
 	}
 

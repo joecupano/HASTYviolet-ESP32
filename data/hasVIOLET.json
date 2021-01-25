@@ -9,9 +9,9 @@
       "mode": "LORA",
       "channel": "HV0",
       "frequency": 911250,
-      "spread": 9,
+      "spreadfactor": 7,
       "codingrate4": 8,
-      "bandwidth": 31250,
+      "bandwidth": 125000,
       "txpwr": 5,
       "mycall": "NOCALL",
       "myssid": "00",
@@ -30,9 +30,9 @@
       "mode": "LORA",
       "channel": "HV0",
       "frequency": 911250,
-      "spread": 9,
+      "spreadfactor": 7,
       "codingrate4": 8,
-      "bandwidth": 31250,
+      "bandwidth": 125000,
       "txpwr": 5,
       "mycall": "NOCALL",
       "myssid": "99",
@@ -46,7 +46,7 @@
       "node_address": 1,
       "modemcfg": "Bw31_25Cr48Sf512",
       "bandwidth": 31.25,
-      "spreadfactor": 512,
+      "spreadfactor": 7,
       "codingrate": 48,
       "rfm_crc": 1
    },
@@ -56,7 +56,7 @@
       "node_address": 1,
       "modemcfg": "Bw31_25Cr48Sf512",
       "bandwidth": 31.25,
-      "spreadfactor": 512,
+      "spreadfactor": 7,
       "codingrate": 48,
       "rfm_crc": 1
    },
@@ -66,7 +66,7 @@
       "node_address": 1,
       "modemcfg": "Bw31_25Cr48Sf512",
       "bandwidth": 31.25,
-      "spreadfactor": 512,
+      "spreadfactor": 7,
       "codingrate": 48,
       "rfm_crc": 1
    },
@@ -79,33 +79,33 @@
    "CHANNELS": {
       "HV0": {
          "frequency": 911250,
-         "spread": 9,
+          "spreadfactor": 7,
          "codingrate4": 8,
-         "bandwidth": 31250
+         "bandwidth": 125000
        },
       "HV1": {
          "frequency": 911250,
-         "spread": 9,
+          "spreadfactor": 7,
          "codingrate4": 8,
-         "bandwidth": 31250
+         "bandwidth": 125000
        },
        "HV2": {
          "frequency": 922300,
-         "spread": 9,
+          "spreadfactor": 7,
          "codingrate4": 8,
-         "bandwidth": 31250
+         "bandwidth": 125000
        },
        "HV3": {
          "frequency": 922500,
-         "spread": 9,
+          "spreadfactor": 7,
          "codingrate4": 8,
-         "bandwidth": 31250
+         "bandwidth": 125000
        },
        "HV4": {
          "frequency": 922700,
-         "spread": 9,
+          "spreadfactor": 7,
          "codingrate4": 8,
-         "bandwidth": 31250
+         "bandwidth": 125000
        }
    }
 }

@@ -1,12 +1,12 @@
 //
-//  HASviolet-ESP32.ino
+//  HASviolet-ESP32.ino (DualCore)
 //
 //  INTRO
 //
 //  HASviolet node to be mansed via WebUI
 //  This version connect to existing AP
 //
-//  20210104-0200
+//  20210124-0300
 //     
 //
 
@@ -25,7 +25,7 @@
 #include "SPIFFS.h"
 #include "ArduinoJson.h"
 #include "FS.h"
-#include "streetcred.h"
+#include "FreeRTOS.h"
 
 
 //
@@ -42,8 +42,8 @@
 //#define SS      18   // GPIO18 -- SX127x's CS
 //#define RST     14   // GPIO14 -- SX127x's RESET
 //#define DI0     26   // GPIO26 -- SX127x's IRQ(Interrupt Request)
-#define BAND    911E6  // you can set band here directly, ( 868E6,915E6 )
 //#define PABOOST true
+#define BAND    911250000  // you can set band here directly, ( 868E6,915E6 )
 //
 // OLED
 // define SCL  15  // GPIO15 -- OLED
@@ -58,36 +58,48 @@
 // VARIABLES
 //
 
-// Set WiFi 
+// Set WiFi Creds
+const char* WIFI_SSID = "Excelsior";         // SSID of WiFi 
+const char* WIFI_KEY = "19144966520";        // Password of WiFi
+
+// Set WiFi Mode
 bool wifi_ap = false;                        // False = Setup as Wifi client, True = Setup as WiFi AP
+
+// Set WebAuthh
+const char* wwwUSERNAME;                     // Webpage Login
+const char* wwwAUTHPASS;                     // Webpage password
 
 //Set Servers
 const uint16_t WEB_PORT = 80;
 const uint16_t WS_PORT = 8000;
 
+//Task handles
+TaskHandle_t TaskTRX;
+TaskHandle_t TaskWebsox;
+
+
 // Configure LoRa and Appstack
-byte localaddressLORA = 0xBB;                // LoRa address of this device (irrelevant)
+// byte localaddressLORA = 0xBB;             // LoRa address of this device (irrelevant)
 byte destinationLORA = 0xFF;                 // LoRa destination to send to (broadcast default)
-byte msgCount = 0;                           // count of outgoing messages
-//long lastSendTime = 0;                     // last send time
-//int interval = 2000;                       // interval between sends
 int frequency = 911250000;                   // HASviolet default settings for safe LoRa module init
-int spread = 7;
+int spreadfactor = 7;
 int codingrate4 = 8;
-int bandwidth = 312500;
-int txpwr = 5;
+int bandwidth = 125000;
+int txpwr = 11;
 
 String mycall = "NOCALL";
 String myssid = "00";
 String dstcall = "BEACON";                   // Destination Call ( BEACON )
 String dstssid = "99";                       // Destination SSID ( 99 )
 String mybeacon = "QRZ? QRZ? QRZ?";          // Baacon Message
-String lastmsgrx = "None";                   // Last received message
-String lastmsgtx = "None";                   // Last transmitted 
-String lastwebsrx = "None";                  // Last received Websocket message
-String lastwebstx = "None";                  // Last transmitted Websocket message
+String lastMsgRX = "None";                   // Last received message
+//String lastMsgTX = "None";                   // Last transmitted 
+//String lastWebsRX = "None";                  // Last received Websocket message
+//String lastWebsTX = "None";                  // Last transmitted Websocket message
 
-String wsmessage = "";
+//String wsmessage = "";
+String payloadS = "";
+//String payloadMSG = "";
 
 // Create Servers
 AsyncWebServer server(WEB_PORT);
@@ -98,28 +110,84 @@ WebSocketsServer webSocket(WS_PORT);
 // FUNCTIONS
 //
 
+/// Main Tasks
+void HasWebsox(void *pvParameters) {
+  Serial.print("800: Task *HasWebSox* on core ");
+  Serial.println(xPortGetCoreID());
+  while (true) {
+    webSocket.loop();
+  }
+}
+
+void HasTRX(void *pvParameters) {
+  // Initialize LoRa
+  LoRa.setSyncWord(0xFF);                                 // Set for LoRa Broadcast
+  LoRa.setFrequency(frequency);
+  LoRa.setSignalBandwidth(bandwidth);
+  LoRa.setCodingRate4(codingrate4);
+  LoRa.setSpreadingFactor(spreadfactor);
+  LoRa.setTxPower(txpwr,RF_PACONFIG_PASELECT_PABOOST);
+  // register the receive callback
+  // LoRa.onReceive(onReceiveLORA);
+  LoRa.receive();
+  Serial.print("700: HasTRX (LoRa) running on core "); 
+  Serial.println(xPortGetCoreID());
+  while (true) {
+    delay(10);
+    // try to parse packet
+    int packetSize = LoRa.parsePacket();
+    if (packetSize) {
+      lastMsgRX = "";
+      for (int i = 0; i < packetSize; i++)
+        lastMsgRX = lastMsgRX + ((char)LoRa.read());
+      lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
+      Serial.println("2000: Received LoRa packet");
+      Serial.println(lastMsgRX);
+      webSocket.broadcastTXT(lastMsgRX);
+    }
+  }
+}
+
+
+/// LoRa
+void sendLORA(String outgoing)
+{
+  LoRa.beginPacket();                        // start packet
+  LoRa.write(destinationLORA);               // add destination address
+  //LoRa.write(localaddressLORA);              // add sender address
+  //LoRa.write(msgCount);                      // add message ID
+  //LoRa.write(outgoing.length());             // add payload length
+  LoRa.print(outgoing);                      // add payload
+  LoRa.endPacket();                          // finish packet and send it
+  //OLEDme("Sending ...",1000);
+  Serial.println("3000: Sent LoRa message");
+  Serial.println(outgoing);
+}
+
+void onReceiveLORA(int packetSize)
+{
+  // read packet
+  lastMsgRX = "";
+  for (int i = 0; i < packetSize; i++)
+  {
+    lastMsgRX = lastMsgRX + ((char)LoRa.read());
+  }
+  lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
+  Serial.println("2000: Received LoRa packet");
+  Serial.println(lastMsgRX);
+  webSocket.broadcastTXT(lastMsgRX);
+}
+
 /// WebServer
 void onIndexRequest(AsyncWebServerRequest* request) {
-  request->send(SPIFFS, "/hasVIOLET_ALLINONE.html", "text/html");
+  request->send(SPIFFS, "/hasVIOLET_INDEX.html", "text/html");
 }
 
 void onJsonRequest(AsyncWebServerRequest* request) {
   request->send(SPIFFS, "/hasVIOLET.json", "application/json");
 }
 
-void onStyleRequest(AsyncWebServerRequest* request) {
-  request->send(SPIFFS, "/hasVIOLET.css", "text/css");
-}
-
-void onScriptRequest(AsyncWebServerRequest* request) {
-  request->send(SPIFFS, "/hasVIOLET_NOSSL.js", "text/javascript");
-}
-
-void onPageNotFound(AsyncWebServerRequest * request) {
-    request->send(404, "text/plain", "Not found");
-}
-
-///WebSockets
+/// WebSockets
 bool isEqual(uint8_t * payload, char * message) {
     return strcmp((char *)payload, message) == 0;
 }
@@ -127,6 +195,7 @@ bool isEqual(uint8_t * payload, char * message) {
 void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t length) {
     if (type == WStype_TEXT) {
       String payloadS = (char*)payload;
+      
       //RADIO
       if (payloadS == "SET:RADIO:ON") {
         // turn me on
@@ -135,6 +204,14 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
           // turn me on
           webSocket.sendTXT(clientID, "ACK:RADIO:OFF");
       }
+      
+      // DUMP LORA
+      if (payloadS == "GET:LORA") {
+        // dump lora config
+        LoRa.dumpRegisters(Serial);
+        webSocket.sendTXT(clientID, "ACK:GET:LORA");
+      }
+      
       //BEACON
       if (payloadS == "SET:BEACON:ON") {
         // turn me on
@@ -143,6 +220,7 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
         // turn me on
         webSocket.sendTXT(clientID, "ACK:BEACON:OFF");
       }
+      
       //TXPWR
       if (payloadS == "SET:TXPWR:LOW") {
         // set me low
@@ -154,18 +232,23 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
         // set me high
         webSocket.sendTXT(clientID, "ACK:TXPWR:HIGH");
       }
+      
       //CHANNEL
-      if (payloadS.indexOf("SET:CHANNEL:")) {
+      if (payloadS.indexOf("SET:CHANNEL:") >= 0) {
         // read channel info then set
         webSocket.sendTXT(clientID, "ACK:SET:CHANNEL:");
       }
+      
       //TX
-      if (payloadS.indexOf("TX:")) {
+      if (payloadS.indexOf("TX:") >= 0) {
         // read channel info then set
         webSocket.sendTXT(clientID, "ACK:" + payloadS);
+        payloadS.replace("TX:","");
+        sendLORA(payloadS);
       }
+      
       //RX
-            if (payloadS.indexOf("TX:")) {
+      if (payloadS.indexOf("RRRRX:") >= 0) {
         // read channel info then set
         webSocket.sendTXT(clientID, "ACK:" + payloadS);
       }
@@ -200,8 +283,6 @@ void initSerial() {
   Serial.begin(115200);
   Serial.println();
   Serial.println();
-  Serial.println("000: HASviolet ESP32");
-  Serial.println("===============================");
 }
 
 void initSPIFFS() {
@@ -231,15 +312,15 @@ void loadJsonFile() {
     }
     // Place JSON into Variables
     wifi_ap = bool(doc["CURRENT"]["wifi_ap"]);
-    wifi_ssid = (const char*)doc["CURRENT"]["wifi_ssid"];
-    wifi_key = (const char*)doc["CURRENT"]["wifi_key"];
+    //WIFI_SSID = (const char*)doc["CURRENT"]["wifi_ssid"];
+    //WIFI_KEY = (const char*)doc["CURRENT"]["wifi_key"];
     mycall = (const char*)doc["CURRENT"]["mycall"];
     myssid = (const char*)doc["CURRENT"]["mySSID"];
     dstcall = (const char*)doc["CURRENT"]["dstcall"];
     dstssid = (const char*)doc["CURRENT"]["dstssid"];
     mybeacon = (const char*)doc["CURRENT"]["mybeacon"];
     frequency = int(doc["CURRENT"]["frequency"]);
-    spread = int(doc["CURRENT"]["spread"]);
+    spreadfactor = int(doc["CURRENT"]["spreadfactor"]);
     codingrate4 = int(doc["CURRENT"]["codingrate4"]);
     bandwidth = int(doc["CURRENT"]["bandwidth"]);
     txpwr = int(doc["CURRENT"]["txpwr"]);
@@ -249,19 +330,20 @@ void loadJsonFile() {
 }
 
 void initWiFi() {
-  WiFi.begin(wifi_ssid, wifi_key);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_KEY);
   while(WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.print(".");
   }
-  Serial.println("300: WiFi MAC " + WiFi.macAddress());
-  Serial.println("310: WiFi IP  " + WiFi.localIP());
-  Serial.println("320: WiFi CL initialized");
+  Serial.println("300: WiFi CL initialized");
+  //Serial.println("300: WiFi MAC " + WiFi.macAddress());
+  //Serial.println("310: WiFi IP  " + WiFi.localIP());
+  //Serial.println("320: WiFi CL initialized");
 }
 
 void initWiFiAP() {
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(wifi_ssid, wifi_key);
+  WiFi.softAP(WIFI_SSID, WIFI_KEY);
   IPAddress ip = WiFi.softAPIP();
   Serial.println("300: WiFi MAC " + WiFi.macAddress());
   Serial.println("310: WiFi IP  " + ip);
@@ -269,9 +351,8 @@ void initWiFiAP() {
 }
 
 void initWebServer() {
-  server.on("/",          HTTP_GET, onIndexRequest);
-  server.on("/index.css", HTTP_GET, onStyleRequest);
-  server.on("/index.js",  HTTP_GET, onScriptRequest);
+  server.on("/", HTTP_GET, onIndexRequest);
+  server.on("/hasVIOLET.json", HTTP_GET, onJsonRequest);
   server.begin();
   Serial.println("400: Webserver initialized");
 }
@@ -290,118 +371,51 @@ void initOLED() {
   Heltec.display->setFont(ArialMT_Plain_10); Serial.println("600: OLED Initialized");
 }
 
-void initLORA() {
-  // Initialize LoRa
-  //LoRa.onReceive(receiveLORA);
-  //LoRa.receive();
-  LoRa.setFrequency(frequency);
-  LoRa.setSignalBandwidth(bandwidth);
-  LoRa.setCodingRate4(codingrate4);
-  LoRa.setSpreadingFactor(spread);
-  LoRa.setTxPower(txpwr,RF_PACONFIG_PASELECT_PABOOST);
-  //LoRa.setSyncWord(0x12);   //0x34
-  //LoRa.setPreambleLength(8);
-  Serial.println("700: LoRa initialized"); 
-}
-
-void sendLORA(String outgoing)
-{
-  LoRa.beginPacket();                        // start packet
-  LoRa.write(destinationLORA);               // add destination address
-  LoRa.write(localaddressLORA);              // add sender address
-  LoRa.write(msgCount);                      // add message ID
-  LoRa.write(outgoing.length());             // add payload length
-  LoRa.print(outgoing);                      // add payload
-  LoRa.endPacket();                          // finish packet and send it
-  Serial.println("3000: Sent LoRa packet");
-}
-
-void receiveLORA(int packetSize)
-{
-  // received a packet
-  Serial.println("2000: Received LoRa packet");
-  if (packetSize == 0) return;               // if there's no packet, return
-  // read packet header bytes:
-  int recipient = LoRa.read();               // recipient address
-  byte sender = LoRa.read();                 // sender address
-  byte incomingMsgId = LoRa.read();          // incoming msg ID
-  byte incomingLength = LoRa.read();         // incoming msg length
-  String incoming = "";                      // payload of packet
-  while (LoRa.available())                   // can't use readString() in callback
-  {
-    incoming += (char)LoRa.read();           // add bytes one by one
-  }
-  if (incomingLength != incoming.length())   // check length for error
-  {
-    Serial.println("error: message length does not match length");
-    return;                                  // skip rest of function
-  }
-  lastmsgrx = incoming;                      // Save as last rx message
-  OLEDme(incoming, 1000);
-  Serial.println();
-  Serial.println("Received from: 0x" + String(sender, HEX));
-  Serial.println("Received from: 0x" + String(sender, HEX));
-  Serial.println("Sent to: 0x" + String(recipient, HEX));
-  Serial.println("Message ID: " + String(incomingMsgId));
-  Serial.println("Message length: " + String(incomingLength));
-  Serial.println("Message: " + incoming);
-  Serial.println("RSSI: " + String(LoRa.packetRssi()));
-  Serial.println("Snr: " + String(LoRa.packetSnr()));
-  Serial.println();
-}
-
 //
 // SETUP
 //
 
 void setup() {
+ 
+  Heltec.begin(true /*DisplayEnable Enable*/, true /*LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
   initSerial();
+  Serial.println("INIT: HASviolet ESP32");
+  Serial.println("===============================");
+  Serial.print("000: Setup running on core ");
+  Serial.println(xPortGetCoreID());
   initSPIFFS();
-  loadJsonFile();
-  delay(1000);
-  //initWiFi();
-  WiFi.begin("Excelsior", "19144966520");
-  while(WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-  }
-  //Serial.println("300: WiFi MAC " + WiFi.macAddress());
-  //Serial.println("310: WiFi IP  " + WiFi.localIP());
-  Serial.println("300: WiFi CL initialized");
-  delay(1000);
+  //loadJsonFile();
+  initWiFi();
   initWebServer();
   initWebSockets();
-   
-  Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
-  
   initOLED();
   logo();
-  initLORA();
+  //initLORA();
+
+
+  // Create core assignments : HasTRX on Core 0
+  // hasWebsox on Core 1 butno need to assign since Loop on that core by default
+  xTaskCreatePinnedToCore(HasTRX, "HasTRX", 10000, NULL, 1, &TaskTRX, 0);
+  delay(500);
+  //xTaskCreatePinnedToCore(HasWebsox, "HasWebsox", 10000, NULL, 1, &TaskWebsox, 1);
+  //delay(500);
+
   Serial.println("===============================");
   Serial.print("999: HASviolet available");
-  Serial.println(wifi_ssid);
+  Serial.println();
   Serial.println();
 }
-
 
 //
 // MAIN
 //
 
 void loop(){
-  webSocket.loop();
-  // start receiver loop
-
-  // parse for a packet, and call onReceive with the result:
-  //receiveLORA(LoRa.parsePacket());
-
-  //   test for radio signal
-  //       if signal then send WS message
-  //   test for WS message
-  //       if WS message test for SET or TX
-  //           SET then change settings
-  //           TX send interrupt then msg
-  //  loop receiver loop
-  //
-  //ws.cleanupClients();
-
+  Serial.print("HasWebSox running in Loop on core ");
+  Serial.println(xPortGetCoreID());
+  Serial.println();
+  while (true) 
+  {
+    webSocket.loop();
+  }
 }
