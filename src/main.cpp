@@ -130,10 +130,10 @@ void HasTRX(void *pvParameters) {
   // register the receive callback
   // LoRa.onReceive(onReceiveLORA);
   LoRa.receive();
-  Serial.print("700: HasTRX (LoRa) running on core "); 
+  Serial.print(" 700: HasTRX (LoRa) running on core "); 
   Serial.println(xPortGetCoreID());
   while (true) {
-    delay(10);
+    delay(5);
     // try to parse packet
     int packetSize = LoRa.parsePacket();
     if (packetSize) {
@@ -141,7 +141,6 @@ void HasTRX(void *pvParameters) {
       for (int i = 0; i < packetSize; i++)
         lastMsgRX = lastMsgRX + ((char)LoRa.read());
       lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
-      Serial.println("2000: Received LoRa packet");
       Serial.println(lastMsgRX);
       webSocket.broadcastTXT(lastMsgRX);
     }
@@ -181,6 +180,10 @@ void onReceiveLORA(int packetSize)
 /// WebServer
 void onIndexRequest(AsyncWebServerRequest* request) {
   request->send(SPIFFS, "/hasVIOLET_INDEX.html", "text/html");
+}
+
+void onFavRequest(AsyncWebServerRequest* request) {
+  request->send(SPIFFS, "/favicon.ico", "text/html");
 }
 
 void onJsonRequest(AsyncWebServerRequest* request) {
@@ -246,12 +249,6 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
         payloadS.replace("TX:","");
         sendLORA(payloadS);
       }
-      
-      //RX
-      if (payloadS.indexOf("RRRRX:") >= 0) {
-        // read channel info then set
-        webSocket.sendTXT(clientID, "ACK:" + payloadS);
-      }
     }
 }
 
@@ -288,10 +285,10 @@ void initSerial() {
 void initSPIFFS() {
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
-    Serial.println("ERR: SPIFFS mounting");
+    Serial.println(" ERR: SPIFFS mounting");
     return;
   }
-  Serial.println("100: SPIFFs initialized");
+  Serial.println(" 100: SPIFFs initialized");
 }
 
 void loadJsonFile() {
@@ -326,7 +323,7 @@ void loadJsonFile() {
     txpwr = int(doc["CURRENT"]["txpwr"]);
     configFile.close();
   }
-  Serial.println("200: JSON loaded");
+  Serial.println(" 200: JSON loaded");
 }
 
 void initWiFi() {
@@ -335,7 +332,7 @@ void initWiFi() {
   while(WiFi.status() != WL_CONNECTED) {
     delay(1000);
   }
-  Serial.println("300: WiFi CL initialized");
+  Serial.println(" 300: WiFi CL initialized");
   //Serial.println("300: WiFi MAC " + WiFi.macAddress());
   //Serial.println("310: WiFi IP  " + WiFi.localIP());
   //Serial.println("320: WiFi CL initialized");
@@ -345,30 +342,31 @@ void initWiFiAP() {
   WiFi.mode(WIFI_AP);
   WiFi.softAP(WIFI_SSID, WIFI_KEY);
   IPAddress ip = WiFi.softAPIP();
-  Serial.println("300: WiFi MAC " + WiFi.macAddress());
-  Serial.println("310: WiFi IP  " + ip);
-  Serial.println("320: WiFi AP initialized");
+  Serial.println(" 300: WiFi MAC " + WiFi.macAddress());
+  Serial.println(" 310: WiFi IP  " + ip);
+  Serial.println(" 320: WiFi AP initialized");
 }
 
 void initWebServer() {
   server.on("/", HTTP_GET, onIndexRequest);
+  server.on("/favicon.ico", HTTP_GET, onFavRequest);
   server.on("/hasVIOLET.json", HTTP_GET, onJsonRequest);
   server.begin();
-  Serial.println("400: Webserver initialized");
+  Serial.println(" 400: Webserver initialized");
 }
 
 void initWebSockets() {
   // Websocket Handler
   webSocket.begin();
   webSocket.onEvent(onWebSocketEvent);
-  Serial.println("500: Websockets initialized");
+  Serial.println(" 500: Websockets initialized");
 }
 
 void initOLED() {
   // Start OLED 
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
-  Heltec.display->setFont(ArialMT_Plain_10); Serial.println("600: OLED Initialized");
+  Heltec.display->setFont(ArialMT_Plain_10); Serial.println(" 600: OLED Initialized");
 }
 
 //
@@ -380,8 +378,8 @@ void setup() {
   Heltec.begin(true /*DisplayEnable Enable*/, true /*LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
   initSerial();
   Serial.println("INIT: HASviolet ESP32");
-  Serial.println("===============================");
-  Serial.print("000: Setup running on core ");
+  Serial.println("=====================================");
+  Serial.print(" 000: Setup running on core ");
   Serial.println(xPortGetCoreID());
   initSPIFFS();
   //loadJsonFile();
@@ -400,9 +398,8 @@ void setup() {
   //xTaskCreatePinnedToCore(HasWebsox, "HasWebsox", 10000, NULL, 1, &TaskWebsox, 1);
   //delay(500);
 
-  Serial.println("===============================");
-  Serial.print("999: HASviolet available");
-  Serial.println();
+  Serial.println("INIT: COMPLETE");
+  Serial.println("=====================================");
   Serial.println();
 }
 
@@ -411,7 +408,7 @@ void setup() {
 //
 
 void loop(){
-  Serial.print("HasWebSox running in Loop on core ");
+  Serial.print("LOOP: HasWebSox running on core ");
   Serial.println(xPortGetCoreID());
   Serial.println();
   while (true) 

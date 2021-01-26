@@ -2,23 +2,16 @@
   <head>
     <meta charset="utf-8" />
     <style>
-      /*
+/*
 #
-#   radioDASH Client CSS
+# HASviolet ESP32 CSS
 #
-#       Ⓒ2020 Joe Cupano, NE2Z
-#
-#       RELEASE: 20201224-2100
-#       LICENSE: GPLv2
-#
+# RELEASE: 20210126-0400
 #
 */
 
-
 /*
- -
- - Index Module CSS   20201224-2300
- - 
+ - Index Module CSS   20201224-2300 
 */
 
 /* ------- grid container ------- */
@@ -94,9 +87,7 @@
 }
 
 /*
- -
- - Tuner Container CSS   20201231-0300
- - 
+ - Tuner Container CSS   20201231-0300 
 */
 
 .tuner-main { /* center / center */
@@ -405,13 +396,9 @@ sup, sub {
 
 /* --- TUNER HOUSING END --- */
 
-
 /*
- -
- - Buttons CSS   20201224-2300
- - 
- - Used by radio-controls-container, cmd-controls-container, and msg-controls-container
- -
+ - Buttons CSS   20201224-2300 
+ - -- Used by radio-controls-container, cmd-controls-container, and msg-controls-container
 */
 
 .keypad-btn-exec {
@@ -453,11 +440,8 @@ sup, sub {
 }
 
 /*
- -
- - Controls CSS   20201224-2300
- - 
- - Used by radio-controls-container, cmd-controls-container, and msg-controls-container
- -
+ - Controls CSS   20201224-2300 
+ - -- Used by radio-controls-container, cmd-controls-container, and msg-controls-container
 */
 
 .controls-container {
@@ -567,7 +551,6 @@ sup, sub {
   clear: both;
 }
 
-
 /* -------- controls panel -------- */
 
 .controls-keypad {
@@ -671,11 +654,8 @@ sup, sub {
   border-color: #333;
 }
 
-
 /*
- -
- - RX Container CSS   20201224-2300
- - 
+ - RX Container CSS   20201224-2300 
 */
 
 .rx-container {
@@ -754,11 +734,8 @@ sup, sub {
   margin: 0;
 }
 
-
 /*
- -
- - TX Container CSS   20201224-2300
- - 
+ - TX Container CSS   20201224-2300 
 */
 
 .tx-container {
@@ -838,12 +815,11 @@ sup, sub {
 }
 
 
-
     </style>
     <title>hasVIOLET</title>
   </head>
   <body>
-    <div class="grid-container">
+  <div class="grid-container">
 
     <!--- tuner-module --->
 
@@ -948,19 +924,14 @@ sup, sub {
     <script>
 /*
 #
-#   hasVIOLET Client Javascript
+#  HASviolet ESP32
 #
-#       Ⓒ2021 Joe Cupano, NE2Z
-#
-#       RELEASE: 20210117-0200
-#       LICENSE: GPLv2
-#
+#  RELEASE: 20210126-0500
 #
 */
 
-/* -            
-/* - VARIABLES    
-/* -
+/*            
+ - VARIABLES    
 */
 
 /* Object to hold imported hasVIOLET.json */
@@ -1103,10 +1074,8 @@ var getHasJson = new XMLHttpRequest();								//  Holds JSON from Radio
 var rxDisplay = [];													//  Holds whole RX window as 27 lines of text
 var rxDispY = 26;													//  Numbe of rowa for RX Window
 
-
-/* -            
-/* - FUNCTIONS
-/* -
+/*            
+ - FUNCTIONS
 */
 
 /* --- Tuner-Module --- */
@@ -1128,7 +1097,6 @@ function btnNUM(knum) {
 	console.log("TUNER: CHANGE TO " + current_channel);
 	updateTunerDisplay(current_channel);
 }
-
 
 /* --- Radio Panel-Module --- */
 
@@ -1247,7 +1215,6 @@ function btnM4() {
 	previous_operation == "M4";
 	console.log("MACRO: btnM4: " + myMacros[3]);
 }
-
 
 /* --- MSG Panel-Module --- */
 
@@ -1438,34 +1405,33 @@ function rxwinMSG(message) {
 
 function rxwinMSGhelp() {
 	rxDisplay [26] = "-"
-	rxDisplay [25] = "---===--- hasVIOLET Instructions ---===---"
+	rxDisplay [25] = "----=======---- hasVIOLET Instructions ----=======----"
 	rxDisplay [24] = "-"
 	rxDisplay [23] = "- KEYPAD:"
-	rxDisplay [22] = "- *** 1 through 9 = HVDN RF Channels 1 through 9 "
+	rxDisplay [22] = "- 1 through 9 = HVDN RF Channels 1 through 9 "
 	rxDisplay [21] = "-"
-	rxDisplay [20] = "- RF CONTROLS:"
-	rxDisplay [19] = "- *** RADIO = Radio on/off ************ MODE = LORA, FSK, AFSK, etc"
-	rxDisplay [18] = "- *** PA = RF Pwr (LOW, MED, HIGH) **** BECN = Beacon msg on/off"
-	rxDisplay [17] = "-"
-	rxDisplay [16] = "- PROGRAMMABLE MACROS:"
-	rxDisplay [15] = "- *** M1 through M4 = Macros 1 though 4"
-	rxDisplay [14] = "-"
-	rxDisplay [13] = "- MESSAGE CONTROLS:"
-	rxDisplay [12] = "- *** CALL = myCall Macro ************* LOG = Log on/off (toggle)"
-  	rxDisplay [11] = "- *** DEST = dstCall Macro ************ RCLR = Clear RX Window"
-  	rxDisplay [10] = "- *** HEAD = Message Header *********** MCLR = TX window clear"
-  	rxDisplay [9] = "- *** HELP = This screen *************** SEND = Send whats in TX Window"
-  	rxDisplay [8] = "- "
-	rxDisplay [7] = "- TX WINDOW COMMANDS:"
-	rxDisplay [6] = "- *** .myCALL NOCALL-00 = Changes CALL macro to hold NOCALL-00"
-  	rxDisplay [5] = "- *** .dstCALL BL0B-50 = Changes DEST macro to hold BL0B-50"
-  	rxDisplay [4] = "- *** .macro1 blah blah =  Changes M1 button to hold blah blah"
-  	rxDisplay [3] = "-"
-	rxDisplay [2] = "- TO SEND A MESSAGE:"
-	rxDisplay [1] = "- *** Via Macro buttons click HEAD, M1, then SEND"
-  	rxDisplay [0] = "- *** Type YourCall>DestCall|MESSAGE in TX window then click SEND"
+	rxDisplay [20] = "- BUTTONS:"
+	rxDisplay [19] = "- RADIO = Radio on/off"
+	rxDisplay [18] = "- BECN = Beacon msg on/off"
+	rxDisplay [17] = "- M1 through M4 = Macros 1 though 4"
+	rxDisplay [16] = "- CALL = myCall Macro ***** LOG = Log on/off (toggle)"
+  	rxDisplay [15] = "- DEST = dstCall Macro **** RCLR = Clear RX Window"
+  	rxDisplay [14] = "- HEAD = Message Header *** MCLR = TX window clear"
+  	rxDisplay [13] = "- HELP = This screen ****** SEND = Send whats in TX Window"
+  	rxDisplay [12] = "- "
+	rxDisplay [11] = "- COMMAND WINDOW"
+	rxDisplay [10] = "- .myCALL NOCALL-00 = Changes CALL macro to hold NOCALL-00"
+  	rxDisplay [9] = "- .dstCALL BL0B-50 = Changes DEST macro to hold BL0B-50"
+  	rxDisplay [8] = "- .macro1 blah blah =  Changes M1 button to hold blah blah"
+  	rxDisplay [7] = "-"
+	rxDisplay [6] = "- TO SEND A MESSAGE:"
+	rxDisplay [5] = "- Via Buttons -- click HEAD, M1, then SEND"
+	rxDisplay [4] = "- Via CMDline -- YourCall>DestCall|MESSAGE then SEND"
+	rxDisplay [3] = "-"
+	rxDisplay [2] = "----=======---- ---=====---=---=====--- ----=======----"
+	rxDisplay [1] = " "
+	rxDisplay [0] = " "
 }
-
 
 /* --- Transmitter-Module --- */
 
@@ -1478,13 +1444,10 @@ function msgENTRY() {
 	var msgENTERED = document.getElementById('msgENTRY').value;
   }
 
-
 /* --- ROOT-Module --- */
 
-
-/* -            
-/* - MAIN
-/* -
+/*
+ - MAIN
 */
 
 // Get hasVIOLET.json on page load
