@@ -3,13 +3,13 @@
 HASviolet ESP32 is a (very much) work-in-progress LoRa transceiver project part of HASviolet.  
 
 # Getting Started
-The quickest way to get started with disaster.radio is to
+The quickest way to get started with HASviolet ESP32 is to
 * Buy a <a href="https://www.amazon.com/gp/product/B07WHRS2XG/" target="_blank">HiLetgo ESP32 LoRa v2 device</a>
 * Download the [latest release](https://github.com/joecupano/hasty-esther/releases)
 * Unzip the `hasviolet-esp32-0.X.X.zip` file
 * Follow the included instructions for flashing it to your device
 
-If you would rather test the latest, cutting-edge developments, you can compile the firmware yourself by cloning this repo and following the [initial setup](#initial-setup-with-platformio) instructions.
+Alternatively, you can compile the firmware yourself by cloning this repo and following the [initial setup](#initial-setup-with-platformio) instructions.
 
 # Architecture Model
 HASviolet ESP32 is made up of a radio (LoRa transceiver), server, and client. 
