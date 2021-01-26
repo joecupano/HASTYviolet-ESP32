@@ -34,7 +34,7 @@ HASviolet ESP32 is made up of a radio (LoRa transceiver), server, and client.
 pip install -U platformio
 ```
 
-Edit `platformio.ini` to suit your needs. If you are flashing a ESP32 LILY TTGO board then you will probably not have to edit anything in `platformio.ini` but make sure `upload_port` is set to the correct device which may vary depending on your operating system and which other devices you have connected.
+Edit `platformio.ini` to suit your needs. If you are flashing a eltec ESP32 WiFI LoRa V2 board then you will probably not have to edit anything in `platformio.ini` but make sure `upload_port` is set to the correct device which may vary depending on your operating system and which other devices you have connected.
 
 ## Building firmware
 
@@ -59,7 +59,7 @@ Then run:
 pio run -t upload
 ```
  
-By default, PlatformIO builds and flashes firmware for the LILY's ESP32 TTGO V2 dev board. If you would like to build for another supported board, select the corresponding build environment. For example to build and flash the firmware and file system for the ESP32 TTG0 V1 board, use the following, 
+By default, PlatformIO builds and flashes firmware for the Heltec ESP32 WiFI LoRa V2 dev board. If you would like to build for another supported board, select the corresponding build environment. For example to build and flash the firmware and file system for the ESP32 TTG0 V1 board, use the following, 
 
 ```
 pio run -e ttgo-lora32-v1 -t upload -t uploadfs
@@ -87,17 +87,16 @@ To build and upload:
 pio run -t uploadfs
 ```
 
-If using an SD card, copy the contents of `web/static/` to the root of a fat32 formatted SD card, then insert the SD card.
 
 # Testing Firmware  
-Once the firmware and SPIFFS image has been successfully flashed, you can test it by logging into the `hasviolet <node-address>` wireless network and navigating to http://192.168.4.1 in a browser to access the browerser interface.  
+Once the firmware and SPIFFS image has been successfully flashed, you can test it by logging into the node vai the WiFi network it is connected to for accessing the browser interface.  
 
-You can also try connecting to the device via serial or telnet with commands like,  
+You can also try connecting to the device via serial,  
 ```
 pio device monitor
 ```
 
-After pressing enter once, you should be greeted with a banner and presented with a prompt to enter a nick or send an anonymous message,
+After pressing enter once, you should be greeted with following,
 ```
 INIT: HASviolet ESP32
 =====================================
