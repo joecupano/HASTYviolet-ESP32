@@ -16,15 +16,15 @@ HASviolet ESP32 is made up of a radio (LoRa transceiver), server, and client.
 
 - Server
     - an ESP32 device that runs Web/Websockets services for communications with the client
-    - includeds LoRa libraries/functions for communications with the radio via the ESP32 SPI interface
+    - includeds LoRa libraries/functions for communications with the radio via the ESP32 <a href="http://iot-bits.com/esp32/esp32-spi-tutorial-part-1/" target=" blank">SPI interface</a>
     - runs code for radio control and communication with the Websockets and LoRa functions
 
 - Radio
-    - an RF module capable of LoRa that is either embedded or external to the ESP32 device
+    - an RF hardware module (such as the <a href="https://www.semtech.com/products/wireless-rf/lora-transceivers/sx1276" target=" blank">sx1276</a>) capable of LoRa that is either embedded or external to the ESP32 device and connected via SPI
 
 - Client
     - Web browser that runs the HASviolet ESP32 Web UI interface
-    - Browser connects to Web service on ESP32 device and loads HTML file that includes CSS and Javascript
+    - Browser connects to Web service on ESP32 device and loads an <a href="https://github.com/joecupano/hasty-esther/blob/main/data/hasVIOLET_INDEX.html" target=" blank">HTML file</a> loaded with HTML5, CSS, and Javascript
     - On load, Javascript runs and connects to the Websocket service on the ESP32 device to establish a websocket session
     - Received data, data to be transmitted, and radio command are commuicated over the websocket session
 
