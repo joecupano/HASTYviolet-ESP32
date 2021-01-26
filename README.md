@@ -34,7 +34,7 @@ HASviolet ESP32 is made up of a radio (LoRa transceiver), server, and client.
 pip install -U platformio
 ```
 
-Edit `platformio.ini` to suit your needs. If you are flashing a eltec ESP32 WiFI LoRa V2 board then you will probably not have to edit anything in `platformio.ini` but make sure `upload_port` is set to the correct device which may vary depending on your operating system and which other devices you have connected.
+Edit `platformio.ini` to suit your needs. If you are flashing a <a href="https://www.amazon.com/gp/product/B07WHRS2XG/" target="_blank">HiLetgo ESP32 LoRa v2 board</a> then you will probably not have to edit anything in `platformio.ini` but make sure `upload_port` is set to the correct device which may vary depending on your operating system and which other devices you have connected.
 
 ## Building firmware
 
@@ -59,7 +59,7 @@ Then run:
 pio run -t upload
 ```
  
-By default, PlatformIO builds and flashes firmware for the Heltec ESP32 WiFI LoRa V2 dev board. If you would like to build for another supported board, select the corresponding build environment. For example to build and flash the firmware and file system for the ESP32 TTG0 V1 board, use the following, 
+By default, PlatformIO builds and flashes firmware for the <a href="https://www.amazon.com/gp/product/B07WHRS2XG/" target="_blank">HiLetgo ESP32 LoRa v2 board</a>. If you would like to build for another supported board, select the corresponding build environment. For example to build and flash the firmware and file system for the ESP32 TTG0 V1 board, use the following, 
 
 ```
 pio run -e ttgo-lora32-v1 -t upload -t uploadfs
