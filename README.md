@@ -3,6 +3,7 @@
 HASviolet ESP32 is a (very much) work-in-progress LoRa transceiver project part of HASviolet.  
 
 # Getting Started
+
 The quickest way to get started with HASviolet ESP32 is to
 * Buy a <a href="https://www.amazon.com/gp/product/B07WHRS2XG/" target="_blank">HiLetgo ESP32 LoRa v2 device</a>
 * Download the [latest release](https://github.com/joecupano/hasty-esther/releases)
@@ -55,6 +56,10 @@ In `platformio.ini` make sure `upload_port`, `upload_speed`, etc are correct for
 
 Then run:
 
+```
+pio run -t uploadfs
+```
+followed by :
 ```
 pio run -t upload
 ```

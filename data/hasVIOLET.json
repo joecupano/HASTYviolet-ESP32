@@ -1,112 +1,96 @@
 {
-   "DEFAULT": {
-      "countrycode": "US",
-      "radio": "DUMMYRF",
-      "wifi_ap": false,
-      "wifi_ssid": "HASviolet",
-      "wifi_key": "quackquack",
-      "oled": "128x32",
-      "mode": "LORA",
-      "channel": "HV0",
-      "frequency": 911250,
-      "spreadfactor": 7,
-      "codingrate4": 8,
-      "bandwidth": 125000,
-      "txpwr": 5,
-      "mycall": "NOCALL",
-      "myssid": "00",
-      "mybeacon": "quack quack",
-      "dstcall": "BEACON",
-      "dstssid": "99"
-   },
-   "CURRENT": {
-      "countrycode": "US",
-      "radio": "RFM95",
-      "wifi_ap": false,
-      "wifi_ssid": "Excelsior",
-      "wifi_key": "19144966520",
-      "oled": "128x32",
-      "node_address": 1,
-      "mode": "LORA",
-      "channel": "HV0",
-      "frequency": 911250,
-      "spreadfactor": 7,
-      "codingrate4": 8,
-      "bandwidth": 125000,
-      "txpwr": 5,
-      "mycall": "NOCALL",
-      "myssid": "99",
-      "mybeacon": "quack quack",
-      "dstcall": "BEACON",
-      "dstssid": "99"
-   },
-   "RFM95": {
-      "gpio_rfm_cs": 1,
-      "gpio_rfm_irq": 22,
-      "node_address": 1,
-      "modemcfg": "Bw31_25Cr48Sf512",
-      "bandwidth": 31.25,
-      "spreadfactor": 7,
-      "codingrate": 48,
-      "rfm_crc": 1
-   },
-   "SX1262": {
-      "gpio_rfm_cs": 1,
-      "gpio_rfm_irq": 22,
-      "node_address": 1,
-      "modemcfg": "Bw31_25Cr48Sf512",
-      "bandwidth": 31.25,
-      "spreadfactor": 7,
-      "codingrate": 48,
-      "rfm_crc": 1
-   },
-   "DUMMYRF": {
-      "gpio_rfm_cs": 1,
-      "gpio_rfm_irq": 22,
-      "node_address": 1,
-      "modemcfg": "Bw31_25Cr48Sf512",
-      "bandwidth": 31.25,
-      "spreadfactor": 7,
-      "codingrate": 48,
-      "rfm_crc": 1
-   },
-   "MACROS": {
-      "M1": "QRZ",
-      "M2": "QSL",
-      "M3": "73",
-      "M4": "TEST TEST TEST"
-   },
-   "CHANNELS": {
-      "HV0": {
-         "frequency": 911250,
-          "spreadfactor": 7,
-         "codingrate4": 8,
-         "bandwidth": 125000
-       },
-      "HV1": {
-         "frequency": 911250,
-          "spreadfactor": 7,
-         "codingrate4": 8,
-         "bandwidth": 125000
-       },
-       "HV2": {
-         "frequency": 922300,
-          "spreadfactor": 7,
-         "codingrate4": 8,
-         "bandwidth": 125000
-       },
-       "HV3": {
-         "frequency": 922500,
-          "spreadfactor": 7,
-         "codingrate4": 8,
-         "bandwidth": 125000
-       },
-       "HV4": {
-         "frequency": 922700,
-          "spreadfactor": 7,
-         "codingrate4": 8,
-         "bandwidth": 125000
-       }
-   }
+	"RADIO": {
+		"channel": 1,
+		"channelname": "HVDN",
+		"frequency": 911250000,
+		"spreadfactor": 7,
+		"codingrate4": 8,
+		"bandwidth": 125000,
+		"txpwr": 7
+	},
+	"CONTACT": {
+		"mycall": "NOCALL",
+		"myssid": "99",
+		"mybeacon": "quack quack",
+		"dstcall": "BEACON",
+		"dstssid": "99"
+	},
+	"MACROS": {
+		"M1": "QRZ",
+		"M2": "QSL",
+		"M3": "73",
+		"M4": "TEST TEST TEST"
+	},
+	"CHANNELS": {
+		"0": {
+			"channelname": "HVDN",
+			"frequency": 911250000,
+			"spreadfactor": 7,
+			"codingrate4": 8,
+			"bandwidth": 125000
+		},
+		"1": {
+			"channelname": "HVDN",
+			"frequency": 911250000,
+			"spreadfactor": 7,
+			"codingrate4": 8,
+			"bandwidth": 125000
+		},
+		"2": {
+			"channelname": "HV2",
+			"frequency": 911400000,
+			"spreadfactor": 7,
+			"codingrate4": 8,
+			"bandwidth": 125000
+		},
+		"3": {
+			"channelname": "HV3",
+			"frequency": 911550000,
+			"spreadfactor": 7,
+			"codingrate4": 8,
+			"bandwidth": 125000
+		},
+		"4": {
+			"channelname": "HV4",
+			"frequency": 911700000,
+			"spreadfactor": 10,
+			"codingrate4": 5,
+			"bandwidth": 250000
+		},
+		"5": {
+			"channelname": "HV5",
+			"frequency": 911850000,
+			"spreadfactor": 10,
+			"codingrate4": 5,
+			"bandwidth": 250000
+		},
+		"6": {
+			"channelname": "HV6",
+			"frequency": 912000000,
+			"spreadfactor": 10,
+			"codingrate4": 5,
+			"bandwidth": 250000
+		},
+		"7": {
+			"channelname": "HV7",
+			"frequency": 912400000,
+			"spreadfactor": 9,
+			"codingrate4": 5,
+			"bandwidth": 500000
+		},
+		"8": {
+			"channelname": "HV8",
+			"frequency": 912600000,
+			"spreadfactor": 9,
+			"codingrate4": 5,
+			"bandwidth": 500000
+		},
+		"9": {
+			"channelname": "HV9",
+			"frequency": 912800000,
+			"spreadfactor": 9,
+			"codingrate4": 5,
+			"bandwidth": 500000
+		}
+	}
 }
-   
