@@ -1,10 +1,10 @@
-/*
--
-- HASviolet_channels.h
--
-- 201210127-0500
--
-*/
+//
+// HASviolet_channels.h
+//
+// ** Release:  201210129-1330
+//
+
+// FREQUENCY and BANDWIDTH are in Hz
 
 #ifdef HVDNCH1
 #define FREQUENCY 911250000

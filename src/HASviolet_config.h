@@ -1,7 +1,8 @@
-/* 
-- Creds and Config
-*/
-
+//
+// HASviolet_config.h
+//
+// ** Release:  201210129-1330
+//
 // WiFi AP Creds
 #define WIFI_APSSID "HASviolet"
 #define WIFI_APKEY "purple"

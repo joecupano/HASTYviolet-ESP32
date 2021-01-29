@@ -1,10 +1,8 @@
-/*
--
-- HASviolet_boards.h
--
-- 201210126-20000
--
-*/
+//
+// HASviolet_boards.h
+//
+// ** Release:  201210129-1330
+//
 
 
 #define CLOCK_SPEED 240

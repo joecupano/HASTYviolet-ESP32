@@ -1,12 +1,8 @@
 //
 //  HASviolet-ESP32.ino (DualCore)
 //
-//  INTRO
 //
-//  HASviolet node to be mansed via WebUI
-//  This version connect to existing AP
-//
-//  20210128-0200
+//  201210129-1330
 //     
 //
 
@@ -29,27 +25,23 @@
 #include "HASviolet_boards.h"
 #include "HASviolet_channels.h"
 #include "HASviolet_config.h"
-#include "HASviolet_creds.h"
 #include "HASviolet_logo.h"
-
 
 
 //
 // DEFINES
 //
 #define HELTEC_WIFI_LORA_32_V2            // Board selected
+//#define TTGO_TBEAM
 #define WIFI_POLL_DELAY 500
 #define WIFI_POLL_TRIES 20
-#define INDEX_FILE "hasVIOLET_index.htm"
 #define BAND 911250000                    // you can set band here directly, ( 868E6,915E6 )
-#define HVDNCH1                           // HVDN LoRa Channel
-
 
 //
 // VARIABLES
 //
 
-boolean MyRX_Reset;                       // A trigger to restart LoRa Radio given freq etc change
+boolean MyRX_Reset;                       // A trigger to restart LoRa Radio
 
 //Set Servers
 const uint16_t WEB_PORT = 80;
@@ -108,7 +100,7 @@ String getSubString(String data, char separator, int index)
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
-/// Main Tasks
+/// Core 1 Task (Web, WebSox, WiFi)
 void HasWebsox(void *pvParameters) {
   Serial.print("800: Task *HasWebSox* on core ");
   Serial.println(xPortGetCoreID());
@@ -120,15 +112,19 @@ void HasWebsox(void *pvParameters) {
 /// Display myOLEDmsg on OLED
 void OLEDme(String myOLEDmsg)
 {
+  myOLEDmsg = myOLEDmsg.substring(0,20);
+  #ifdef HELTEC_WIFI_LORA_32_V2
   Heltec.display->clear();
   Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
   Heltec.display->setFont(ArialMT_Plain_10);
   Heltec.display->drawString(0, 15, myOLEDmsg);
   Heltec.display->display();
+  #endif
   //delay(oledTIME);
   //Heltec.display->clear();
 }
 
+/// Core 0 Task (LoRa)
 void HasTRX(void *pvParameters) {
   while (true) {
     MyRX_Reset = false;
@@ -139,8 +135,6 @@ void HasTRX(void *pvParameters) {
     LoRa.setCodingRate4(codingrate4);
     LoRa.setSpreadingFactor(spreadfactor);
     LoRa.setTxPower(txpwr,RF_PACONFIG_PASELECT_PABOOST);
-    // register the receive callback
-    // LoRa.onReceive(onReceiveLORA);
     LoRa.receive();
     Serial.print("CPU("); 
     Serial.print(xPortGetCoreID());
@@ -161,7 +155,7 @@ void HasTRX(void *pvParameters) {
   }
 }
 
-/// LoRa
+/// TX LoRa
 void sendLORA(String outgoing)
 {
   LoRa.beginPacket();                     // start packet
@@ -179,6 +173,7 @@ void sendLORA(String outgoing)
   MyRX_Reset = true;
 }
 
+/// RX LoRa
 void onReceiveLORA(int packetSize)
 {
   // read packet
@@ -196,7 +191,7 @@ void onReceiveLORA(int packetSize)
   webSocket.broadcastTXT(lastMsgRX);
 }
 
-/// Task Beacon
+/// Core 1 Task (Beacon LoRa)
 void HasBeacon(void *pvParameters) {
   // read channel info then set
   delay(8000);
@@ -204,14 +199,16 @@ void HasBeacon(void *pvParameters) {
   sendLORA(lastMsgTX);
 }
 
-/// OLED DISPLAY FUNCTIONS
+/// Display Logo on OLED
 void logo()
 {
+  #ifdef HELTEC_WIFI_LORA_32_V2
   Heltec.display->clear();
   Heltec.display->drawXbm(0,5,hvdnimg_width,hvdnimg_height,hvdnimg_bits);
   Heltec.display->display();
   delay(1500);
   Heltec.display->clear();
+  #endif
 }
 
 /// WebServer
@@ -402,9 +399,11 @@ void initWebSockets() {
 
 void initOLED() {
   // Start OLED 
+  #ifdef HELTEC_WIFI_LORA_32_V2
   Heltec.display->init();
   Heltec.display->flipScreenVertically();  
   Heltec.display->setFont(ArialMT_Plain_10); Serial.println(" 600: OLED Initialized");
+   #endif
 }
 
 //
@@ -433,13 +432,22 @@ void setup() {
   Serial.println("=====================================");
   Serial.println();
   
-  // Create core assignments : HasTRX on Core 0
+  // Create Task assignments
+  //
+  // HasTRX on Core 0
   // hasWebsox on Core 1 butno need to assign since Loop on that core by default
+  //
   xTaskCreatePinnedToCore(HasTRX, "HasTRX", 10000, NULL, 1, &TaskTRX, 0);
   delay(500);
+  //
+  // HasBeacon on Core 1
   //xTaskCreatePinnedToCore(HasBeacon, "HasBeacon", 10000, NULL, 1, &TaskBeacon, 1);
+  //
   //vTaskSuspend(TaskBeacon);
   //delay(500);
+  //
+  //  Websox on Core 1
+  //
   //xTaskCreatePinnedToCore(HasWebsox, "HasWebsox", 10000, NULL, 1, &TaskWebsox, 1);
   //delay(500);
 
