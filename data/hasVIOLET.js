@@ -1,19 +1,19 @@
-/*
-#
-#  HASviolet ESP32
-#
-#  RELEASE: 20210128-0200
-#
-*/
+//
+//
+//  HASviolet ESP32
+//
+//  RELEASE: 20210128-0200
+//
+//
 
-/*            
- - VARIABLES    
-*/
+//            
+// VARIABLES    
+//
 
 /* Object to hold imported hasVIOLET.json */
 var myRadio = {
 	RADIO: {
-		channel: "CH1",
+		channel: "1",
 		channelname: "HVDN",
 		frequency: 911250,
 		spreadfactor: 7,
@@ -23,70 +23,70 @@ var myRadio = {
 	},
 	CHANNELS: {
 		0: {
-			channelname: "HVDN",
+			channelname: "HAS 0",
 	        frequency: 911250000,
     	    spreadfactor: 7,
         	codingrate4: 8,
         	bandwidth: 125000,
 	  	},
 	  	1: {
-        	channelname: "HVDN",
+        	channelname: "HAS 1",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	2: {
-         	channelname: "HVDN",
+         	channelname: "HAS 2",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	3: {
-         	channelname: "HVDN",
+         	channelname: "HAS 3",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	4: {
-         	channelname: "HVDN",
+         	channelname: "HAS 4",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	5: {
-         	channelname: "HVDN",
+         	channelname: "HAS 5",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	6: {
-         	channelname: "HVDN",
+         	channelname: "HAS 6",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	7: {
-         	channelname: "HVDN",
+         	channelname: "HAS 7",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	8: {
-         	channelname: "HVDN",
+         	channelname: "HAS 8",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
          	bandwidth: 125000,
 	  	},
 	  	9: {
-         	channelname: "HVDN",
+         	channelname: "HAS 9",
          	frequency: 911250000,
          	spreadfactor: 7,
          	codingrate4: 8,
@@ -108,7 +108,7 @@ var myRadio = {
    	}
 }
 
-/* Current MSG Exchange*/
+// Current MSG Exchange
 var myContact = {
 	mycall: "NOCALL",
 	myssid: "00",
@@ -120,90 +120,78 @@ var myContact = {
 	received: ""
 }
 
-/* Programmable Channels */
+// Programmable Channels
 var myChannels = [0,1,2,3,4,5,6,7,8,9];
 
-/* Programmable Macros M1-M4 */
+// Programmable Macros M1-M4
 var myMacros = ["","","",""];
 
-/* Last Seven Calls heard (NO IMPLEMENTED YET*/
+// Last Seven Calls heard (NO IMPLEMENTED YET
 var myHeard = [ "NOCALLS", "NOCALLS", "NOCALLS", "NOCALLS", "NOCALLS", "NOCALLS", "NOCALLS"];
 
-/* Radio and Msg Module Commands */
-var radioCONN = 0;                                                  //  0 = Disconnected, 1 = Connected
-var radioBEACON = 0;                                                //  0 = Beacon OFF, 1 = Beacon ON  
-var radioTXPWR = 5;                                                 //  TX Power can be        5-21    
-var radioLOG = 0;                                                   //  0 = Beacon OFF, 1 = Beacon ON
-var radioMODE = "LORA";                                             //  LORA, (futures FSK, FX.25, ...
-var msgENTERED = "";												//  Typed into TX_Window      
-var msgPARSED = [];													//  For processing two-part command
-var msgSUBPARSED = [];												//  For processing two-part command  
-var msgPARTICLE = [];												//  For processing two-part command  
-var msgSENT = "";													//  msgINPUT that was TXed  
-
-var currCHAN = 0;													//  Channel Numbers 0 - 3
-var lastCHAN = 0;													//  Channel Numbers 0 - 3
-var previous_channel = "";
-var current_channel = "";
+// Radio and Msg Module Commands
+var radioBEACON = 0;                                    //  0 = Beacon OFF, 1 = Beacon ON  
+var radioTXPWR = 5;                                     //  TX Power can be        5-21    
+var radioLOG = 0;                                       //  0 = Beacon OFF, 1 = Beacon ON
+var radioMODE = "LORA";                                 //  LORA, (futures FSK, FX.25, ...
+var msgENTERED = "";									//  Typed into TX_Window      
+var msgPARSED = [];										//  For processing two-part command
+var msgSUBPARSED = [];									//  For processing two-part command  
+var msgPARTICLE = [];									//  For processing two-part command  
+var msgSENT = "";										//  msgINPUT that was TXed  
+var currCHAN = 0;										//  Current Channel Number
+var lastCHAN = 0;										//  Last Channel Number
+var current_channel = "";								//  Current Channel Name
+var previous_channel = "";								//  Last Channel Name
 var previous_operation = "";
 var current_operation = "";
 var previous_entry = "";
 var current_entry = "";
-var new_entry;
 var myHostname = location.hostname;
-var wsURI = "ws://" + myHostname + ":8000/ws";			 	     	//  TEST Websocket URI 
-var url = "http://" + myHostname + "/hasVIOLET.json";	      	    //  JSON file location
-var getHasJson = new XMLHttpRequest();								//  Holds JSON from Radio
-// var setRadioCfg = new XMLHttpRequest();					        //  Replace with JSON to Radio via Websocket
-var rxDisplay = [];													//  Holds whole RX window as 27 lines of text
-var rxDispY = 26;													//  Numbe of rowa for RX Window
+var wsURI = "ws://" + myHostname + ":8000/ws";			//  TEST Websocket URI 
+var url = "http://" + myHostname + "/hasVIOLET.json";	//  JSON file location
+var getHasJson = new XMLHttpRequest();					//  Holds JSON from Radio
+var rxDisplay = [];										//  Holds whole RX window as 27 lines of text
+var rxDispY = 26;										//  Numbe of rowa for RX Window
 
-/*            
- - FUNCTIONS
-*/
+//            
+// FUNCTIONS
+//
 
-/* --- Tuner-Module --- */
-
-function updateTunerDisplay(myChannel) {
+// --- Tuner-Module ---
+function updateTuner(localChannelnum) {
+	msgSOX = "SET:TUNER:" + myRadio.CHANNELS[localChannelnum].frequency + ":"
+						 + myRadio.CHANNELS[localChannelnum].spreadfactor + ":"
+						 + myRadio.CHANNELS[localChannelnum].codingrate4 + ":"
+						 + myRadio.CHANNELS[localChannelnum].bandwidth;
+	socket.send(msgSOX);
 	var el = document.getElementById('tuner-setting');
-	el.textContent = myChannel;
-	console.log("TUNER: Display changed to " + myChannel);
+	console.log(msgSOX);
+	el.textContent = myRadio.CHANNELS[localChannelnum].channelname;
+	//console.log("TUNER: changed to " + myRadio.CHANNELS[localChannelnum].channelname);
 }
 
-function btnNUM(knum) {
+function btnNUM(localChannelnum) {
 	previous_channel = current_channel;
 	lastCHAN = currCHAN;
-	currCHAN = knum;
-	current_channel = myChannels[knum];
-	console.log("TUNER: CHANGE TO " + current_channel);
-	updateTunerDisplay(current_channel);
+	currCHAN = localChannelnum;
+	current_channel = myRadio.CHANNELS[localChannelnum].channelname;
+	console.log("CHANNEL: change to " + current_channel);
+	updateTuner(localChannelnum);
 }
 
-/* --- Radio Panel-Module --- */
-
+// --- Radio Panel-Module ---
 function btnRADIO() {
 	console.log("RADIO: btnRADIO: clicked");
 	var el_btnRADIO = document.getElementById('btnRADIO');
-	if (radioCONN == 0) {
-		radioCONN = 1;
-		el_btnRADIO.style.background = "MediumSeaGreen";
-		socket.send("SET:RADIO:ON");
-		console.log("RADIO: btnRADIO: Radio ON");
-		previous_entry = 0;
-		previous_operation = "RADIO_ON";
-	 }
-	 else if (radioCONN == 1){
-		 radioCONN = 0;
-		 el_btnRADIO.style.background = "Black";
-		 socket.send("SET:RADIO:OFF");
-		 console.log("RADIO: btnRADIO: Radio OFF");
-		 previous_entry = 0;
-		 previous_operation = "RADIO_OFF";
-	 }
- }
+	socket.send("SET:RADIO:RESET");
+	console.log("RADIO: RESET");
+	previous_entry = 0;
+	previous_operation = "RADIO_RESET";
+}
 
 function btnTXPWR() {
-	console.log("RADIOL: btnTXPWR: clicked");
+	console.log("RADIO: btnTXPWR: clicked");
 	var el_btnTXPWR = document.getElementById('btnTXPWR');
 	if (radioTXPWR == 5) {
 		radioTXPWR = 10;
@@ -259,8 +247,7 @@ function btnBEACON() {
 	 }
 }
 
-/* --- Macros Module --- */
-
+// --- Macros Module ---
 function btnM1() {
 	console.log("MACRO: btnM1: clicked");
 	msgENTERED = msgENTERED + myMacros[0];
@@ -297,8 +284,7 @@ function btnM4() {
 	console.log("MACRO: btnM4: " + myMacros[3]);
 }
 
-/* --- MSG Panel-Module --- */
-
+// --- MSG Panel-Module ---
 function btnLOG() {
 	console.log("MSG: btnLOG: clicked");
 	var el_btnLOG = document.getElementById('btnLOG');
@@ -367,11 +353,10 @@ function btnSEND() {
 	msgENTERED = document.getElementById('msgENTRY').value;
 	console.log("PANEL: btnSEND", msgENTERED);
 
-	/* --- Sort through commands first --- */
-	
+	// --- Sort through commands first ---
 	msgPARSED = msgENTERED.split(" ");
 		
-	if (msgPARSED[0] === ".msgBEACON") {                    /*  Set BEACON message  */
+	if (msgPARSED[0] === ".msgBEACON") {					//Set BEACON message
 		msgSUBPARSED = msgENTERED.replace('msgBEACON ', '')
 		myContact.mybeacon = msgSUBPARSED;
 		myRadio.CURRENT.mybeacon = myContact.mybeacon;
@@ -380,7 +365,7 @@ function btnSEND() {
 		console.log("CMD: set: Beacon MSG = " + myContact.mybeacon);
 		previous_operation = "COMMAND";
 	
-	} else if (msgPARSED[0] === ".myCALL") {                  /*  Set myCALL and mySSID  */
+	} else if (msgPARSED[0] === ".myCALL") {				//Set myCALL and mySSID
 		msgSUBPARSED = msgPARSED[1];
 		msgPARTICLE = msgSUBPARSED.split("-");
 		myRadio.CONTACT.mycall = msgPARTICLE[0];
@@ -390,7 +375,7 @@ function btnSEND() {
 		console.log("CMD: set: CALL =" + myRadio.CONTACT.mycall + "-" + myRadio.CONTACT.myssid);
 		previous_operation = "COMMAND";
 	
-	} else if (msgPARSED[0] === ".dstCALL") {                 /*  Set myRadio.CONTACT.dstcall and myRadio.CONTACT.dstssid  */
+	} else if (msgPARSED[0] === ".dstCALL") {				//Set myRadio.CONTACT.dstcall and myRadio.CONTACT.dstssid
 		msgSUBPARSED = msgPARSED[1];
 		msgPARTICLE = msgSUBPARSED.split("-");
 		myRadio.CONTACT.dstcall = msgPARTICLE[0];
@@ -400,45 +385,45 @@ function btnSEND() {
 		console.log("CMD: set: DEST =" + myRadio.CONTACT.dstcall + "-" + myRadio.CONTACT.dstssid);
 		previous_operation = "COMMAND";
 	
-	} else if (msgPARSED[0] === ".dumpLORA") {               //  dump LoRa resgisters 
+	} else if (msgPARSED[0] === ".dumpLORA") {				//  dump LoRa resgisters 
 		socket.send("GET:LORA" + msgENTERED);
 		rxwinMSG("GET:LORA");
 		console.log("CMD: GET:LORA");
 		previous_operation = "COMMAND";
 	
-	} else if (msgPARSED[0] === ".macro1") {                 //  Set Macro Button 1 
-		msgSUBPARSED = msgENTERED.replace('.macro1 ', '')
+	} else if (msgPARSED[0] === ".macro1") {				//  Set Macro Button 1 
+		msgSUBPARSED = msgENTERED.replace('.macro1 ', '');
 		myMacros[0] = msgSUBPARSED;
 		message = "MACRO1 = " + myMacros[0];
 		rxwinMSG(message);
 		console.log("CMD: set: M1 =" + myMacros[0]);
 		previous_operation = "COMMAND";
 	
-	} else if (msgPARSED[0] === ".macro2") {                 //  Set Macro Button 2  
-		msgSUBPARSED = msgENTERED.replace('.macro2 ', '')
+	} else if (msgPARSED[0] === ".macro2") {				//  Set Macro Button 2  
+		msgSUBPARSED = msgENTERED.replace('.macro2 ', '');
 		myMacros[1] = msgSUBPARSED;
 		message = "MACRO3 = " + myMacros[1];
 		rxwinMSG(message);
 		console.log("CMD: set: PANEL: btnM2: M2 = " + myMacros[1]);
 		previous_operation = "COMMAND";
 	
-	} else if (msgPARSED[0] === ".macro3") {                 //  Set Macro Button 3  
-		msgSUBPARSED = msgENTERED.replace('.macro3 ', '')
+	} else if (msgPARSED[0] === ".macro3") {				//  Set Macro Button 3  
+		msgSUBPARSED = msgENTERED.replace('.macro3 ', '');
 		myMacros[2] = msgSUBPARSED;
 		message = "MACRO1 = " + myMacros[2];
 		rxwinMSG(message);
 		console.log("CMD: set: M3 = " + myMacros[2]);
 		previous_operation = "COMMAND";
 		
-	} else if (msgPARSED[0] === ".macro4") {                 //  Set Macro Button 4  
-		msgSUBPARSED = msgENTERED.replace('.macro4 ', '')
+	} else if (msgPARSED[0] === ".macro4") {				//  Set Macro Button 4  
+		msgSUBPARSED = msgENTERED.replace('.macro4 ', '');
 		myMacros[3] = msgSUBPARSED;
 		message = "MACRO1 = " + myMacros[3];
 		rxwinMSG(message);
 		console.log("CMD: set: M4 = " + myMacros[3]);
 		previous_operation = "COMMAND";
 
-	/* Anything else is a message to be TX */
+	// Anything else is a message to be TX
 	} else {
 		socket.send("TX:" + msgENTERED);
 		rxwinMSG("TX:"+ msgENTERED);
@@ -453,8 +438,7 @@ function btnSEND() {
 
 }
 
-/* --- Receiver-Window --- */
-
+// --- Receiver-Window --- 
 function rxwinRCLR() {
 	console.log("rxWIN: RCLR");
 	for (i = rxDispY; i > 0; i=i-1) {
@@ -510,8 +494,7 @@ function rxwinMSGhelp() {
 	rxDisplay [0] = " "
 }
 
-/* --- Transmitter-Module --- */
-
+// --- Transmitter-Module ---
 function msgENTRY() {
 	// Get the focus to the text input to enter a word right away.
 	document.getElementById('msgENTRY').focus();
@@ -521,11 +504,10 @@ function msgENTRY() {
 	var msgENTERED = document.getElementById('msgENTRY').value;
   }
 
-/* --- ROOT-Module --- */
 
-/*
- - MAIN
-*/
+//
+// MAIN
+//
 
 // Get hasVIOLET.json on page load
 getHasJson.open('GET', url, true);
@@ -539,11 +521,17 @@ getHasJson.onload = function() {
 console.log("INIT: myRadio Object Loaded");
 
 // Channel assignments
-myChannels = Object.keys(myRadio.CHANNELS);
-myRadio.CHANNELS.channel = myChannels[1];           // Set HOME button channel
-console.log("INIT: Channels CH1-CH3 set as " + myChannels[1], myChannels[2],  myChannels[3]);
-console.log("INIT: Channels CH4-CH6 set as " + myChannels[4], myChannels[5],  myChannels[6]);
-console.log("INIT: Channels CH7-CH9 set as " + myChannels[7], myChannels[8],  myChannels[9]);
+myChannelsIndex = Object.keys(myRadio.CHANNELS);	// Need Keys as Properties for easy function reference
+//myRadio.CHANNELS.channel = myChannels[1];         // Set HOME button channel
+//console.log("INIT: Channels CH1-CH3 set as " + myChannels[1], myChannels[2],  myChannels[3]);
+//console.log("INIT: Channels CH4-CH6 set as " + myChannels[4], myChannels[5],  myChannels[6]);
+//console.log("INIT: Channels CH7-CH9 set as " + myChannels[7], myChannels[8],  myChannels[9]);
+
+//myRadio.CHANNELS.channel = myChannels[1];           // Set HOME button channel
+console.log("INIT: Channels CH1-CH3 set as " + myRadio.CHANNELS[1].channelname, myRadio.CHANNELS[2].channelname, myRadio.CHANNELS[3].channelname);
+console.log("INIT: Channels CH4-CH6 set as " + myRadio.CHANNELS[3].channelname, myRadio.CHANNELS[4].channelname, myRadio.CHANNELS[6].channelname);
+console.log("INIT: Channels CH7-CH9 set as " + myRadio.CHANNELS[7].channelname, myRadio.CHANNELS[8].channelname, myRadio.CHANNELS[9].channelname);
+
 
 // Set Macros M1 to M4
 myMacros[0] = myRadio.MACROS.M1;   		            // Beacon Message
@@ -557,13 +545,12 @@ console.log("INIT: Websocket :" + wsURI);
 console.log("INIT: COMPLETE");
 previous_entry = "";  
 previous_operation = "INIT";                        // Set last operation
-updateTunerDisplay(myChannels[1]);                  // Update Tuner Display with Home Channel
 
 // Load RX Window with Help Message
 rxwinMSGhelp();
 rxwinMSG('-');
 
-/* Establish Websocket */
+// Establish Websocket 
 socket = new WebSocket(wsURI);
 
 socket.onopen = function(e) {

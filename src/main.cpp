@@ -15,6 +15,7 @@
 // LIBRARIES
 //
 
+#include "Arduino.h"
 #include "Time.h"
 #include "TimeLib.h"
 #include "heltec.h"
@@ -48,7 +49,7 @@
 // VARIABLES
 //
 
-boolean fMyTask_Restart;                  // A trigger to restart LoRa Receiver after transmit
+boolean MyRX_Reset;                       // A trigger to restart LoRa Radio given freq etc change
 
 //Set Servers
 const uint16_t WEB_PORT = 80;
@@ -57,6 +58,7 @@ const uint16_t WS_PORT = 8000;
 //Task handles
 TaskHandle_t TaskTRX;
 TaskHandle_t TaskWebsox;
+//TaskHandle_t TaskBeacon;
 
 // Configure LoRa
 // byte localaddressLORA = 0xBB;          // LoRa address of this device (irrelevant)
@@ -75,7 +77,7 @@ String dstssid = "99";                    // Destination SSID ( 99 )
 String mybeacon = "QRZ? QRZ? QRZ?";       // Baacon Message
 String lastMsgRX = " ";                   // Last received message
 String payloadS = "";
-//String lastMsgTX = "None";              // Last transmitted 
+String lastMsgTX = " ";                // Last transmitted 
 //String lastWebsRX = "None";             // Last received Websocket message
 //String lastWebsTX = "None";             // Last transmitted Websocket message
 
@@ -88,6 +90,24 @@ WebSocketsServer webSocket(WS_PORT);
 // FUNCTIONS
 //
 
+/// Split String
+
+String getSubString(String data, char separator, int index)
+{
+  int found = 0;
+  int strIndex[] = {0, -1};
+  int maxIndex = data.length()-1;
+
+  for(int i=0; i<=maxIndex && found<=index; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+        found++;
+        strIndex[0] = strIndex[1]+1;
+        strIndex[1] = (i == maxIndex) ? i+1 : i;
+    }
+  }
+  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
 /// Main Tasks
 void HasWebsox(void *pvParameters) {
   Serial.print("800: Task *HasWebSox* on core ");
@@ -97,9 +117,21 @@ void HasWebsox(void *pvParameters) {
   }
 }
 
+/// Display myOLEDmsg on OLED
+void OLEDme(String myOLEDmsg)
+{
+  Heltec.display->clear();
+  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
+  Heltec.display->setFont(ArialMT_Plain_10);
+  Heltec.display->drawString(0, 15, myOLEDmsg);
+  Heltec.display->display();
+  //delay(oledTIME);
+  //Heltec.display->clear();
+}
+
 void HasTRX(void *pvParameters) {
   while (true) {
-    fMyTask_Restart = false;
+    MyRX_Reset = false;
     // Initialize LoRa
     LoRa.setSyncWord(0xFF);                 // Set for LoRa Broadcast
     LoRa.setFrequency(frequency);
@@ -113,42 +145,20 @@ void HasTRX(void *pvParameters) {
     Serial.print("CPU("); 
     Serial.print(xPortGetCoreID());
     Serial.println("): Task (re)start - HasTRX (LoRa)"); 
-    while (!fMyTask_Restart) {
+    while (!MyRX_Reset) {
       delay(5);
       // try to parse packet
       int packetSize = LoRa.parsePacket();
       if (packetSize) {
         lastMsgRX = "";
         for (int i = 0; i < packetSize; i++)
-          lastMsgRX = lastMsgRX + ((char)LoRa.read());
+                  lastMsgRX = lastMsgRX + ((char)LoRa.read());
         lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
         Serial.println(lastMsgRX);
         webSocket.broadcastTXT(lastMsgRX);
       }
     }
   }
-}
-
-/// OLED DISPLAY FUNCTIONS
-void logo()
-{
-  Heltec.display->clear();
-  Heltec.display->drawXbm(0,5,hvdnimg_width,hvdnimg_height,hvdnimg_bits);
-  Heltec.display->display();
-  delay(1500);
-  Heltec.display->clear();
-}
-
-/// Display myOLEDmsg on OLED
-void OLEDme(String myOLEDmsg)
-{
-  Heltec.display->clear();
-  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  Heltec.display->drawString(0, 15, myOLEDmsg);
-  Heltec.display->display();
-  //delay(oledTIME);
-  //Heltec.display->clear();
 }
 
 /// LoRa
@@ -165,7 +175,8 @@ void sendLORA(String outgoing)
   #endif
   Serial.print("TX:");
   Serial.println(outgoing);
-  fMyTask_Restart = true;
+  lastMsgTX = outgoing;                   // Record last message sent
+  MyRX_Reset = true;
 }
 
 void onReceiveLORA(int packetSize)
@@ -183,6 +194,24 @@ void onReceiveLORA(int packetSize)
   OLEDme(lastMsgRX);
   #endif
   webSocket.broadcastTXT(lastMsgRX);
+}
+
+/// Task Beacon
+void HasBeacon(void *pvParameters) {
+  // read channel info then set
+  delay(8000);
+  webSocket.broadcastTXT("BEACON:" + lastMsgTX);
+  sendLORA(lastMsgTX);
+}
+
+/// OLED DISPLAY FUNCTIONS
+void logo()
+{
+  Heltec.display->clear();
+  Heltec.display->drawXbm(0,5,hvdnimg_width,hvdnimg_height,hvdnimg_bits);
+  Heltec.display->display();
+  delay(1500);
+  Heltec.display->clear();
 }
 
 /// WebServer
@@ -216,12 +245,10 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
       String payloadS = (char*)payload;
       
       //RADIO
-      if (payloadS == "SET:RADIO:ON") {
-        // turn me on
-        webSocket.sendTXT(clientID, "ACK:RADIO:ON");
-      } else if (payloadS == "SET:RADIO:OFF") {
-          // turn me on
-          webSocket.sendTXT(clientID, "ACK:RADIO:OFF");
+      if (payloadS == "SET:RADIO:RESET") {
+        // Reset Radio - HASTRX task
+        webSocket.sendTXT(clientID, "ACK:RADIO:RESET");
+        MyRX_Reset = true;
       }
       
       // DUMP LORA
@@ -235,27 +262,42 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
       if (payloadS == "SET:BEACON:ON") {
         // turn me on
         webSocket.sendTXT(clientID, "ACK:BEACON:ON");
+        //vTaskResume(TaskBeacon);               // Add a beacon vtask to Core 1
       } else if (payloadS == "SET:BEACON:OFF") {
-        // turn me on
+        // turn me off
         webSocket.sendTXT(clientID, "ACK:BEACON:OFF");
+        //vTaskSuspend(TaskBeacon);              // Kill beacon vtask to Core 1
       }
       
       //TXPWR
       if (payloadS == "SET:TXPWR:LOW") {
         // set me low
+        txpwr = 7;
         webSocket.sendTXT(clientID, "ACK:TXPWR:LOW");
       } else if (payloadS == "SET:TXPWR:MEDIUM") {
         // set me medium
+        txpwr = 14;
         webSocket.sendTXT(clientID, "ACK:TXPWR:MEDIUM");
       } else if (payloadS == "SET:TXPWR:HIGH") {
         // set me high
+        txpwr = 21;
         webSocket.sendTXT(clientID, "ACK:TXPWR:HIGH");
       }
       
       //CHANNEL
-      if (payloadS.indexOf("SET:CHANNEL:") >= 0) {
-        // read channel info then set
-        webSocket.sendTXT(clientID, "ACK:SET:CHANNEL:");
+      if (payloadS.indexOf("SET:TUNER:") >= 0) {
+        webSocket.sendTXT(clientID, "ACK:SET:TUNER:");
+        String localjunk = getSubString(payloadS,':',0);
+        String localjunk2 = getSubString(payloadS,':',1);
+        String localfrequency = getSubString(payloadS,':',2);
+        String localspreadfactor = getSubString(payloadS,':',3);
+        String localcodingrate4 = getSubString(payloadS,':',4);
+        String localbandwidth = getSubString(payloadS,':',5);   
+        frequency = localfrequency.toInt();
+        spreadfactor = localspreadfactor.toInt();
+        codingrate4 = localcodingrate4.toInt();
+        bandwidth = localbandwidth.toInt();
+        MyRX_Reset = true;
       }
       
       //TX
@@ -395,6 +437,9 @@ void setup() {
   // hasWebsox on Core 1 butno need to assign since Loop on that core by default
   xTaskCreatePinnedToCore(HasTRX, "HasTRX", 10000, NULL, 1, &TaskTRX, 0);
   delay(500);
+  //xTaskCreatePinnedToCore(HasBeacon, "HasBeacon", 10000, NULL, 1, &TaskBeacon, 1);
+  //vTaskSuspend(TaskBeacon);
+  //delay(500);
   //xTaskCreatePinnedToCore(HasWebsox, "HasWebsox", 10000, NULL, 1, &TaskWebsox, 1);
   //delay(500);
 

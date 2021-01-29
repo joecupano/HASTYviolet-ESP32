@@ -30,63 +30,63 @@
 			"bandwidth": 125000
 		},
 		"1": {
-			"channelname": "HVDN",
+			"channelname": "HAS 1",
 			"frequency": 911250000,
 			"spreadfactor": 7,
 			"codingrate4": 8,
 			"bandwidth": 125000
 		},
 		"2": {
-			"channelname": "HV2",
+			"channelname": "HAS 2",
 			"frequency": 911400000,
 			"spreadfactor": 7,
 			"codingrate4": 8,
 			"bandwidth": 125000
 		},
 		"3": {
-			"channelname": "HV3",
+			"channelname": "HAS 3",
 			"frequency": 911550000,
 			"spreadfactor": 7,
 			"codingrate4": 8,
 			"bandwidth": 125000
 		},
 		"4": {
-			"channelname": "HV4",
+			"channelname": "HAS 4",
 			"frequency": 911700000,
 			"spreadfactor": 10,
 			"codingrate4": 5,
 			"bandwidth": 250000
 		},
 		"5": {
-			"channelname": "HV5",
+			"channelname": "HAS 5",
 			"frequency": 911850000,
 			"spreadfactor": 10,
 			"codingrate4": 5,
 			"bandwidth": 250000
 		},
 		"6": {
-			"channelname": "HV6",
+			"channelname": "HAS 6",
 			"frequency": 912000000,
 			"spreadfactor": 10,
 			"codingrate4": 5,
 			"bandwidth": 250000
 		},
 		"7": {
-			"channelname": "HV7",
+			"channelname": "HAS 7",
 			"frequency": 912400000,
 			"spreadfactor": 9,
 			"codingrate4": 5,
 			"bandwidth": 500000
 		},
 		"8": {
-			"channelname": "HV8",
+			"channelname": "HAS 8",
 			"frequency": 912600000,
 			"spreadfactor": 9,
 			"codingrate4": 5,
 			"bandwidth": 500000
 		},
 		"9": {
-			"channelname": "HV9",
+			"channelname": "HAS 9",
 			"frequency": 912800000,
 			"spreadfactor": 9,
 			"codingrate4": 5,
