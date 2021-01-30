@@ -420,7 +420,7 @@ void setup() {
   Serial.print(" 000: Setup running on core ");
   Serial.println(xPortGetCoreID());
   initSPIFFS();
-  //loadJsonFile();
+  loadJsonFile();
   initWiFi();
   initWebServer();
   initWebSockets();
