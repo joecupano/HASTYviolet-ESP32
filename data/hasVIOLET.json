@@ -1,12 +1,16 @@
 {
 	"RADIO": {
-		"channel": 1,
-		"channelname": "HVDN",
+		"channel": "HV1",
+		"rfmodule": "RFM9X",
+		"modem": 0,
 		"frequency": 911250000,
 		"spreadfactor": 7,
 		"codingrate4": 8,
 		"bandwidth": 125000,
-		"txpwr": 7
+		"txpwr": 10
+	},
+	"HID": {
+		"oled": "128x32"
 	},
 	"CONTACT": {
 		"mycall": "NOCALL",
@@ -23,74 +27,91 @@
 	},
 	"CHANNELS": {
 		"0": {
-			"channelname": "MEDIUM",
-			"frequency": 911250000,
+			"channelname": "HV0",
+			"modem": 0,
+			"frequency": 911250000
+		},
+		"1": {
+			"channelname": "HV1",
+			"modem": 0,
+			"frequency": 911250000
+		},
+		"2": {
+			"channelname": "HV2",
+			"modem": 2,
+			"frequency": 911250000
+		},
+		"3": {
+			"channelname": "HV3",
+			"modem": 3,
+			"frequency": 911250000
+		},
+		"4": {
+			"channelname": "HV4",
+			"modem": 4,
+			"frequency": 911250000
+		},
+		"5": {
+			"channelname": "HV5",
+			"modem": 1,
+			"frequency": 911250000
+		},
+		"6": {
+			"channelname": "HV6",
+			"modem": 2,
+			"frequency": 911300000
+		},
+		"7": {
+			"channelname": "HV7",
+			"modem": 3,
+			"frequency": 911300000
+		},
+		"8": {
+			"channelname": "HV8",
+			"modem": 0,
+			"frequency": 911300000
+		},
+		"9": {
+			"channelname": "HV9",
+			"modem": 1,
+			"frequency": 911300000
+		}
+	},
+	"MODEMS": {
+		"0": {
+			"modemconfig": "Bw125Cr45Sf128",
+			"modemname": "MEDIUM",
 			"spreadfactor": 7,
 			"codingrate4": 8,
 			"bandwidth": 125000
 		},
 		"1": {
-			"channelname": "MEDIUM",
-			"frequency": 911250000,
+			"modemconfig": "Bw500Cr45Sf128",
+			"modemname": "FAST-SHRT",
 			"spreadfactor": 7,
-			"codingrate4": 8,
-			"bandwidth": 125000
+			"codingrate4": 5,
+			"bandwidth": 500000
 		},
 		"2": {
-			"channelname": "SLOW",
-			"frequency": 911250000,
+			"modemconfig": "Bw31_25Cr48Sf512",
+			"modemname": "SLOW-LNG1",
 			"spreadfactor": 7,
 			"codingrate4": 8,
 			"bandwidth": 31250
 		},
 		"3": {
-			"channelname": "SLOW2",
-			"frequency": 911250000,
+			"modemconfig": "Bw125Cr48Sf4096",
+			"modemname": "SLOW-LNG2",
 			"spreadfactor": 12,
 			"codingrate4": 8,
 			"bandwidth": 125000
 		},
 		"4": {
-			"channelname": "FAST",
-			"frequency": 911250000,
+			"modemconfig": "Bw125Cr45Sf2048",
+			"modemname": "SLOW-LNG3",
 			"spreadfactor": 8,
 			"codingrate4": 5,
 			"bandwidth": 125000
-		},
-		"5": {
-			"channelname": "2SLOW",
-			"frequency": 911400000,
-			"spreadfactor": 7,
-			"codingrate4": 8,
-			"bandwidth": 31250
-		},
-		"6": {
-			"channelname": "2SLOW2",
-			"frequency": 911400000,
-			"spreadfactor": 12,
-			"codingrate4": 8,
-			"bandwidth": 125000
-		},
-		"7": {
-			"channelname": "MEDIUM",
-			"frequency": 911400000,
-			"spreadfactor": 8,
-			"codingrate4": 5,
-			"bandwidth": 1250000
-		},
-		"8": {
-			"channelname": "FAST",
-			"frequency": 911400000,
-			"spreadfactor": 8,
-			"codingrate4": 5,
-			"bandwidth": 125000
-		},
-		"9": {
-			"channelname": "3SLOW",
-			"frequency": 912800000,
-			"spreadfactor": 7,
-			"codingrate4": 8,
-			"bandwidth": 31250
 		}
 	}
 }

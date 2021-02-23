@@ -1,13 +1,16 @@
 /*
 #
-# HASviolet ESP32 CSS
+# HASviolet INDEX CSS
 #
-# RELEASE: 20210128-0200
+# RELEASE: 20210213-2100
 #
 */
 
+
 /*
+ -
  - Index Module CSS   20201224-2300 
+ - 
 */
 
 /* ------- grid container ------- */
@@ -82,16 +85,12 @@
   padding: 16px;
 }
 
-/*
- - Tuner Container CSS   20201231-0300 
-*/
 
-.tuner-main { /* center / center */
-	position: absolute;
-}
-.tuner-small {
-	margin-left: -130px;
-}
+/*
+ -
+ - Tuner Container CSS   20210213-2100 
+ -
+*/
 
 .tuner-main {
 	display: block;
@@ -114,14 +113,6 @@
 	background: linear-gradient(to bottom,  #141414 45%,#282828 80%); /* W3C */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#141414', endColorstr='#282828',GradientType=0 ); /* IE6-9 */
 }
-.tuner-main:after {
-	content: "";
-	display: block;
-	clear: both;
-}
-.tuner-small {
-	/* width: 240px; */ /* only needed in Chrome extension */
-}
 
 /* --------- display --------- */
 
@@ -130,14 +121,14 @@
 	height: 60px;
 	margin: 0 5px 6px 5px;
 	padding: 0 8px;
-	border-radius: 5px;
+	border-radius: 5px
 	box-shadow:
 		inset 0 30px 1px rgba(255, 255, 255, 0.25),
 		inset 0 -1px 2px rgba(255, 255, 255, 0.5),
 		inset 0  2px 3px rgba(  0,   0,   0, 0.40);
-	font-size: 45px;
-	line-height: 61px;
-	text-align: center;
+	font-size: 32px;
+	line-height: 48px;
+	text-align: right;
 	white-space: nowrap;
 	color: #333;
 	cursor: default;
@@ -151,95 +142,45 @@
 	background: linear-gradient(to bottom,  #edefe0 45%,#babea2 80%); /* W3C */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#edefe0', endColorstr='#babea2',GradientType=0 ); /* IE6-9 */
 }
-.display-KHZ {
+
+.subdisplay-spreadfactor {
+	position: absolute ;
+	bottom: 2px;
+	font-size: 14px;
+	line-height: 14px;
+	left: 8px;
+}
+
+.subdisplay-codingrate4 {
 	position: absolute;
 	bottom: 2px;
 	font-size: 14px;
 	line-height: 14px;
-	right: 11px;
+	left: 56px;
 }
-.tuner-small .display-KHZ {
-	display: none;
-}
-.tuner-hold {
+
+.subdisplay-bandwidth {
 	position: absolute;
-	right: 5px;
-	bottom: 1px;
-	font-size: 8px;
-	line-height: 13px;
-	color: #666;
-	height: 12px;
+	bottom: 2px;
+	font-size: 14px;
+	line-height: 14px;
+	left: 100px;
 }
 
-/* ----- display helper buttons ----- */
-
-.tuner-buttons {
+.subdisplay-channelname {
 	position: absolute;
-	top: 2px;
-	left: 2px;
-	opacity: .35;
-	height: 21px;
-	width: 21px;
-	transition:
-		opacity 0.15s ease-in;
-}
-.tuner-buttons:hover {
-	opacity: 0.75;
-	height: 100%;
-	width: 17px;
-}
-.tuner-buttons div {
-	position: absolute;
-	top: 1px;
-	height: 17px;
-	width: 17px;
-	font-size: 8px;
-	text-align: center;
-	text-decoration: none;
-	line-height: 12px;
-	text-indent: 1px;
-	color: #333;
-	cursor: default;
-	border-radius: 50%;
-	border: 1px solid #444;
-}
-.tuner-buttons .tuner-smaller {
-	opacity: 0;
-}
-.tuner-buttons .tuner-ln {
-	font-size: 17px;
-	line-height: 2px;
-	overflow: hidden;
-	opacity: 0;
-}
-.tuner-buttons:hover div {
-	transition:
-		opacity 0.15s ease-in,
-		top 0.25s ease-out;
+	bottom: 2px;
+	font-size: 14px;
+	line-height: 14px;
+	right: 8px;
 }
 
-.tuner-buttons:hover .tuner-smaller {
-	top: 15px;
-	opacity: 0.75;
-}
-.tuner-buttons:hover .tuner-ln {
-	top: 29px;
-	opacity: 0.75;
-}
-.tuner-buttons .tuner-info:hover, .tuner-buttons .tuner-smaller:hover, .tuner-buttons .tuner-ln:hover {
-	opacity: 1;
-}
-
-/* -------- key board -------- */
+/* -------- keypad -------- */
 
 .tuner-dash {
 	position: relative;
 	float: left;
 	width: 240px;
-}
-
-.tuner-small {
-	display: none;
 }
 
 .tuner-main textarea {
@@ -251,8 +192,6 @@
 	border: 0;
 	background-color: transparent;
 }
-
-/* -------- key board keys -------- */
 
 .tuner-dash > div {
 	margin: 5px 4px;
@@ -269,7 +208,7 @@
 }
 .tuner-dash > div > div {
 	position: absolute;
-	top: 0px;
+	top: -0px;
 	right: 0px;
 	height: 28px;
 	left: 0px;
@@ -297,49 +236,12 @@
 		0px  0px 22px  rgb(255, 255, 255),
 		0px -1px  0px rgba(  0,   0,   0, 0.5);
 }
-.tuner-dash .tuner-eq {
-	height: 68px;
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	background-color: #EA6811;
-}
-.tuner-down {
-	padding-top: 40px;
-}
-.tuner-radxy sup {
-	padding-bottom: 4px;
-	display: block;
-	position: absolute;
-	left: 14px;
-	top: 6px;
-}
-.tuner-radxy em {
-	font-weight: normal;
-	font-size: 16px;
-	padding-right: 2px;
-}
-.tuner-dash .btnWIDE {
-	width: 80px;
-}
-.tuner-dash .btnWIDE div {
-	text-align: left;
-}
-.tuner-dash .btnWIDE span {
-	padding-left: 22px;
-}
 .tuner-blank {
 	border-color: transparent;
 	background: none;
 	background-image: none;
 	box-shadow: none;
 	clear: right;
-}
-.tuner-dash .btnBROWN > div {
-	background-color: #635045;
-}
-.tuner-dash .btnBROWN {
-	background-color: #4b3c34;
 }
 
 .tuner-dash .btnBLACK > div {
@@ -351,13 +253,6 @@
 }
 .tuner-dash .btnBLACK {
 	background-color: #181818;
-}
-.tuner-dash .btnORANGE > div {
-	background-color: #FF7113;
-	box-shadow:
-		inset 0 -13px 1px rgba(148,  77,  18, 0.20),
-		inset 0  7px  6px rgba(255, 255, 255, 0.3),
-		inset 0  6px  6px rgba(255, 255, 255, 0.1);
 }
 .tuner-dash > div:active,
 .tuner-dash .tuner-press {
@@ -384,17 +279,12 @@
 	border-color: #333;
 }
 
-sup, sub {
-	font-size: 10px;
-	line-height: 0;
-	padding-left: 1px;
-}
-
-/* --- TUNER HOUSING END --- */
 
 /*
+ -
  - Buttons CSS   20201224-2300 
  - -- Used by radio-controls-container, cmd-controls-container, and msg-controls-container
+ -
 */
 
 .keypad-btn-exec {
@@ -435,9 +325,12 @@ sup, sub {
     inset 0 6px 6px rgba(255, 255, 255, 0.1);
 }
 
+
 /*
+ -
  - Controls CSS   20201224-2300 
  - -- Used by radio-controls-container, cmd-controls-container, and msg-controls-container
+ - 
 */
 
 .controls-container {
@@ -555,8 +448,6 @@ sup, sub {
   width: 240px;
 }
 
-/* -------- controls buttons -------- */
-
 .controls-keypad > div {
   margin: 5px 4px;
   position: relative;
@@ -650,8 +541,11 @@ sup, sub {
   border-color: #333;
 }
 
+
 /*
+ -
  - RX Container CSS   20201224-2300 
+ - 
 */
 
 .rx-container {
@@ -730,8 +624,11 @@ sup, sub {
   margin: 0;
 }
 
+
 /*
+ -
  - TX Container CSS   20201224-2300 
+ -
 */
 
 .tx-container {
@@ -809,4 +706,3 @@ sup, sub {
 .tx-window-pre {
   margin: 0;
 }
-
