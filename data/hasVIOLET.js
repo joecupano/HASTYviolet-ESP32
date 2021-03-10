@@ -106,8 +106,8 @@ var current_operation = "";
 var previous_entry = "";
 var current_entry = "";
 var myHostname = location.hostname;
-var wsURI = "wss://" + myHostname + ":8000/wss";					//  TEST Websocket URI 
-var url = "https://" + myHostname + ":8000/cfg/hasVIOLET.json";		//  JSON file location
+var wsURI = "ws://" + myHostname + ":8888/ws";	 			     	//  Separate WS port with no SSL
+var url = "http://" + myHostname + ":8000/cfg/hasVIOLET.json";		//  Get JSON file with no SSL
 var getHasJson = new XMLHttpRequest();								//  Holds JSON from Radio
 
 var rxDisplay = [];													//  Holds whole RX window as 27 lines of text
