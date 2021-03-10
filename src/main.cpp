@@ -44,8 +44,8 @@
 boolean MyRX_Reset;                       // A trigger to restart LoRa Radio
 
 //Set Servers
-const uint16_t WEB_PORT = 80;
-const uint16_t WS_PORT = 8000;
+const uint16_t WEB_PORT = 8000;
+const uint16_t WS_PORT = 8888;
 
 //Task handles
 TaskHandle_t TaskTRX;
@@ -56,20 +56,25 @@ TaskHandle_t TaskWebsox;
 // byte localaddressLORA = 0xBB;          // LoRa address of this device (irrelevant)
 byte destinationLORA = 0xFF;              // LoRa destination to send to (broadcast default)
 
+// Default settings beofre HASviolet.json load
+String channel = "HV1";                   // Channel
+String rfmodule = "RFM9X";                // RF Module
+String modemconfig = "Bw125Cr45Sf128";    // Modemstring Radiohead
+int modem = 0;
 int frequency = 911250000;                // HASviolet default settings for safe LoRa module init
 int spreadfactor = 7;
 int codingrate4 = 8;
 int bandwidth = 125000;
 int txpwr = TXPWR;
-
 String mycall = "NOCALL";
 String myssid = "00";
+String mybeacon = "QRZ? QRZ? QRZ?";       // Baacon Message
 String dstcall = "BEACON";                // Destination Call ( BEACON )
 String dstssid = "99";                    // Destination SSID ( 99 )
-String mybeacon = "QRZ? QRZ? QRZ?";       // Baacon Message
+
 String lastMsgRX = " ";                   // Last received message
 String payloadS = "";
-String lastMsgTX = " ";                // Last transmitted 
+String lastMsgTX = " ";                   // Last transmitted 
 //String lastWebsRX = "None";             // Last received Websocket message
 //String lastWebsTX = "None";             // Last transmitted Websocket message
 
@@ -341,16 +346,20 @@ void loadJsonFile() {
       Serial.println("]");
     }
     // Place JSON into Variables
-    mycall = (const char*)doc["CURRENT"]["mycall"];
-    myssid = (const char*)doc["CURRENT"]["mySSID"];
-    dstcall = (const char*)doc["CURRENT"]["dstcall"];
-    dstssid = (const char*)doc["CURRENT"]["dstssid"];
-    mybeacon = (const char*)doc["CURRENT"]["mybeacon"];
-    frequency = int(doc["CURRENT"]["frequency"]);
-    spreadfactor = int(doc["CURRENT"]["spreadfactor"]);
-    codingrate4 = int(doc["CURRENT"]["codingrate4"]);
-    bandwidth = int(doc["CURRENT"]["bandwidth"]);
-    txpwr = int(doc["CURRENT"]["txpwr"]);
+    channel	= (const char*)doc["RADIO"]["channel"];
+		rfmodule = (const char*)doc["RADIO"]["rfmodule"];
+		modemconfig = (const char*)doc["RADIO"]["modemconfig"];
+		modem = int(doc["RADIO"]["modem"]);
+    frequency = int(doc["RADIO"]["frequency"]);
+    spreadfactor = int(doc["RADIO"]["spreadfactor"]);
+    codingrate4 = int(doc["RADIO"]["codingrate4"]);
+    bandwidth = int(doc["RADIO"]["bandwidth"]);
+    txpwr = int(doc["RADIO"]["txpwr"]);
+    mycall = (const char*)doc["CONTACT"]["mycall"];
+    myssid = (const char*)doc["CONTACT"]["mySSID"];
+    mybeacon = (const char*)doc["CONTACT"]["mybeacon"];
+    dstcall = (const char*)doc["CONTACT"]["dstcall"];
+    dstssid = (const char*)doc["CONTACT"]["dstssid"];
     configFile.close();
   }
   Serial.println(" 200: JSON loaded");
