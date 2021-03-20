@@ -1,8 +1,8 @@
 //
-//  HASviolet-ESP32.ino (DualCore)
+//  HASviolet-ESP32
 //
 //
-//  20210311-1330 (based on alpha_0-35)
+//  20210320-1700
 //     
 //
 
