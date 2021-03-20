@@ -7,6 +7,9 @@
 //
 
 
+// Chosen board
+#define HELTEC_WIFI_LORA_32_V2            // Board selected
+
 //
 // LIBRARIES
 //
@@ -14,7 +17,10 @@
 #include "Arduino.h"
 #include "Time.h"
 #include "TimeLib.h"
+#include "HASviolet_config.h"
+#ifdef HELTEC_WIFI_LORA_32_V2
 #include "heltec.h"
+#endif
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 #include <WebSocketsServer.h>
@@ -22,17 +28,12 @@
 #include "ArduinoJson.h"
 #include "FS.h"
 #include "FreeRTOS.h"
-#include "HASviolet_boards.h"
-#include "HASviolet_channels.h"
-#include "HASviolet_config.h"
 #include "HVDN_logo.h"
 
 
 //
 // DEFINES
 //
-#define HELTEC_WIFI_LORA_32_V2            // Board selected
-//#define TTGO_TBEAM
 #define WIFI_POLL_DELAY 500
 #define WIFI_POLL_TRIES 20
 #define BAND 911250000                    // you can set band here directly, ( 868E6,915E6 )
@@ -56,7 +57,7 @@ TaskHandle_t TaskWebsox;
 // byte localaddressLORA = 0xBB;          // LoRa address of this device (irrelevant)
 byte destinationLORA = 0xFF;              // LoRa destination to send to (broadcast default)
 
-// Default settings beofre HASviolet.json load
+// Default settings before HASviolet.json load
 String channel = "HV1";                   // Channel
 String rfmodule = "RFM9X";                // RF Module
 String modemconfig = "Bw125Cr45Sf128";    // Modemstring Radiohead
@@ -73,10 +74,8 @@ String dstcall = "BEACON";                // Destination Call ( BEACON )
 String dstssid = "99";                    // Destination SSID ( 99 )
 
 String lastMsgRX = " ";                   // Last received message
-String payloadS = "";
+String payloadS = "";                     // LoRa message App layer payload
 String lastMsgTX = " ";                   // Last transmitted 
-//String lastWebsRX = "None";             // Last received Websocket message
-//String lastWebsTX = "None";             // Last transmitted Websocket message
 
 // Create Servers
 AsyncWebServer server(WEB_PORT);
@@ -475,8 +474,8 @@ void setup() {
   initWebSockets();
   #ifdef HAS_OLED
   initOLED();
-  #endif
   logo();
+  #endif
   Serial.println("INIT: COMPLETE");
   Serial.println("=====================================");
   Serial.println();
