@@ -185,7 +185,7 @@ When the web browser connects to the server, it loads four files in the followin
 
 During development it is common for me to run VSC with a monitor window set to view serial output, a web browser connected to the ESP32 with an inspect window open looking at the console tab, and a RTL-SDR running looking at LoRa packets fly by. All necessary since changing functionality may be an asychronous process of JS, EPS32, and HTML code updates.
 
-![HASvESP32_21130.png](docs/hasv-dev.png)
+![HASvESP32_21130.png](docs/has-dev.png)
 
 ## Building and uploading SPIFFS image
 
