@@ -7,9 +7,6 @@
 //
 
 
-// Chosen board
-#define HELTEC_WIFI_LORA_32_V2            // Board selected
-
 //
 // LIBRARIES
 //
@@ -17,36 +14,23 @@
 #include "Arduino.h"
 #include "Time.h"
 #include "TimeLib.h"
+#include "HASviolet_boards.h"
 #include "HASviolet_config.h"
-#ifdef HELTEC_WIFI_LORA_32_V2
-#include "heltec.h"
-#endif
-#include "WiFi.h"
 #include "ESPAsyncWebServer.h"
 #include <WebSocketsServer.h>
 #include "SPIFFS.h"
 #include "ArduinoJson.h"
 #include "FS.h"
 #include "FreeRTOS.h"
-#include "HVDN_logo.h"
-
-
-//
-// DEFINES
-//
-#define WIFI_POLL_DELAY 500
-#define WIFI_POLL_TRIES 20
-#define BAND 911250000                    // you can set band here directly, ( 868E6,915E6 )
+#ifdef HASV_HAS_OLED
+#include "HASviolet_OLED.h"
+#endif
 
 //
 // VARIABLES
 //
 
 boolean MyRX_Reset;                       // A trigger to restart LoRa Radio
-
-//Set Servers
-const uint16_t WEB_PORT = 8000;
-const uint16_t WS_PORT = 8888;
 
 //Task handles
 TaskHandle_t TaskTRX;
@@ -78,8 +62,8 @@ String payloadS = "";                     // LoRa message App layer payload
 String lastMsgTX = " ";                   // Last transmitted 
 
 // Create Servers
-AsyncWebServer server(WEB_PORT);
-WebSocketsServer webSocket(WS_PORT);
+AsyncWebServer server(HASV_WEB_PORT);
+WebSocketsServer webSocket(HASV_WS_PORT);
 
 
 //
@@ -113,21 +97,6 @@ void HasWebsox(void *pvParameters) {
   }
 }
 
-/// Display myOLEDmsg on OLED
-void OLEDme(String myOLEDmsg)
-{
-  myOLEDmsg = myOLEDmsg.substring(0,20);
-  #ifdef HELTEC_WIFI_LORA_32_V2
-  Heltec.display->clear();
-  Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
-  Heltec.display->setFont(ArialMT_Plain_10);
-  Heltec.display->drawString(0, 15, myOLEDmsg);
-  Heltec.display->display();
-  #endif
-  //delay(oledTIME);
-  //Heltec.display->clear();
-}
-
 /// Core 0 Task (LoRa)
 void HasTRX(void *pvParameters) {
   while (true) {
@@ -136,7 +105,11 @@ void HasTRX(void *pvParameters) {
     LoRa.setSyncWord(0xFF);                 // Set for LoRa Broadcast
     LoRa.disableCrc();
     LoRa.setFrequency(frequency);
-    LoRa.setTxPower(txpwr,RF_PACONFIG_PASELECT_PABOOST);
+    #ifdef HASV_PABOOST
+    LoRa.setTxPower(txpwr,HASV_PABOOST);
+    #else
+    LoRa.setTxPower(txpwr);
+    #endif
     if (modemconfig == "Bw125Cr45Sf128") {
         LoRa.setSignalBandwidth(125000);
         LoRa.setSpreadingFactor(7);
@@ -196,7 +169,7 @@ void sendLORA(String outgoing)
   //LoRa.write(outgoing.length());        // add payload length
   LoRa.print(outgoing);                   // add payload
   LoRa.endPacket();                       // finish packet and send it
-  #ifdef HAS_OLED
+  #ifdef HASV_HAS_OLED
   OLEDme(outgoing);
   #endif
   Serial.print("TX:");
@@ -217,7 +190,7 @@ void onReceiveLORA(int packetSize)
   lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
   Serial.print("RX:");
   Serial.println(lastMsgRX);
-  #ifdef HAS_OLED
+  #ifdef HASV_HAS_OLED
   OLEDme(lastMsgRX);
   #endif
   webSocket.broadcastTXT(lastMsgRX);
@@ -229,18 +202,6 @@ void HasBeacon(void *pvParameters) {
   delay(8000);
   webSocket.broadcastTXT("BEACON:" + lastMsgTX);
   sendLORA(lastMsgTX);
-}
-
-/// Display Logo on OLED
-void logo()
-{
-  #ifdef HELTEC_WIFI_LORA_32_V2
-  Heltec.display->clear();
-  Heltec.display->drawXbm(0,5,hvdnimg_width,hvdnimg_height,hvdnimg_bits);
-  Heltec.display->display();
-  delay(1500);
-  Heltec.display->clear();
-  #endif
 }
 
 /// WebServer
@@ -405,9 +366,9 @@ void loadJsonFile() {
 }
 
 void initWiFi() {
-  #ifdef WIFI_SSID
+  #ifdef HASV_WIFI_SSID
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_KEY);
+  WiFi.begin(HASV_WIFI_SSID, HASV_WIFI_KEY);
   while(WiFi.status() != WL_CONNECTED) {
     delay(1000);
   }
@@ -419,7 +380,7 @@ void initWiFi() {
   if (WiFi.status() != WL_CONNECTED) 
   {
     WiFi.mode(WIFI_AP);
-    WiFi.softAP(WIFI_APSSID, WIFI_APKEY);
+    WiFi.softAP(HASV_WIFI_APSSID, HASV_WIFI_APKEY);
     IPAddress ip = WiFi.softAPIP();
     Serial.println(" 300: WiFi AP initialized");
     //Serial.println(" 310: WiFi IP  " + ip);
@@ -445,13 +406,19 @@ void initWebSockets() {
   Serial.println(" 500: Websockets initialized");
 }
 
-void initOLED() {
-  // Start OLED 
-  #ifdef HELTEC_WIFI_LORA_32_V2
-  Heltec.display->init();
-  Heltec.display->flipScreenVertically();  
-  Heltec.display->setFont(ArialMT_Plain_10); Serial.println(" 600: OLED Initialized");
-   #endif
+void initLoRa() {
+  SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_CS); 
+  LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);         
+  if (!LoRa.begin(911250000)) {
+    Serial.println("Starting LoRa failed!");
+    while (1); // if LoRa won't start just die with infinite loop
+  }
+  LoRa.setSpreadingFactor(7); // ranges from 6-12, default 7 see API docs. Changed for ver 0.1 Glacierjay
+  LoRa.setFrequency(911250000);
+  LoRa.setCodingRate4(8);
+  LoRa.setSignalBandwidth(125000);
+  LoRa.setTxPower(14, PA_OUTPUT_PA_BOOST_PIN);
+  Serial.println(" 600: LoRa initialized");
 }
 
 //
@@ -459,9 +426,6 @@ void initOLED() {
 //
 
 void setup() {
-  #ifdef HELTEC_WIFI_LORA_32_V2 
-  Heltec.begin(true /*DisplayEnable Enable*/, true /*LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
-  #endif
   initSerial();
   Serial.println("INIT: HASviolet ESP32");
   Serial.println("=====================================");
@@ -472,7 +436,8 @@ void setup() {
   initWiFi();
   initWebServer();
   initWebSockets();
-  #ifdef HAS_OLED
+  initLoRa();
+  #ifdef HASV_HAS_OLED
   initOLED();
   logo();
   #endif
