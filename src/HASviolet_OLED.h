@@ -6,8 +6,6 @@
 //     
 //
 
-#include <SPI.h>
-#include <Wire.h>
 #include "Adafruit_BusIO_Register.h"
 #include "Adafruit_GFX.h"                 // Adafruit OLED libraries - tried and true
 #include "Adafruit_SSD1306.h"

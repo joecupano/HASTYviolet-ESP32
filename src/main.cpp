@@ -12,17 +12,22 @@
 //
 
 #include "Arduino.h"
+#include <SPI.h>
+#include <Wire.h>
 #include "Time.h"
 #include "TimeLib.h"
-#include "HASviolet_boards.h"
+#include "WiFi.h"
+#include "WiFiClient.h"
+#include "LoRa.h"
 #include "HASviolet_config.h"
+#include "HASviolet_boards.h"
 #include "ESPAsyncWebServer.h"
 #include <WebSocketsServer.h>
 #include "SPIFFS.h"
 #include "ArduinoJson.h"
 #include "FS.h"
 #include "FreeRTOS.h"
-#ifdef HASV_HAS_OLED
+#ifdef HASV_OLED_YES
 #include "HASviolet_OLED.h"
 #endif
 
@@ -30,36 +35,27 @@
 // VARIABLES
 //
 
-boolean MyRX_Reset;                       // A trigger to restart LoRa Radio
-
-//Task handles
-TaskHandle_t TaskTRX;
-TaskHandle_t TaskWebsox;
-//TaskHandle_t TaskBeacon;
-
 // Configure LoRa
-// byte localaddressLORA = 0xBB;          // LoRa address of this device (irrelevant)
-byte destinationLORA = 0xFF;              // LoRa destination to send to (broadcast default)
+// byte localaddressLORA = 0xBB;                 // LoRa address of this device (irrelevant)
+byte destinationLORA = 0xFF;                     // LoRa destination to send to (broadcast default)
 
 // Default settings before HASviolet.json load
-String channel = "HV1";                   // Channel
-String rfmodule = "RFM9X";                // RF Module
-String modemconfig = "Bw125Cr45Sf128";    // Modemstring Radiohead
-int modem = 0;
-int frequency = 911250000;                // HASviolet default settings for safe LoRa module init
-int spreadfactor = 7;
-int codingrate4 = 8;
-int bandwidth = 125000;
-int txpwr = 11;
+String channel = "HV1";                          // Channel
+String modemconfig = HASV_RF_LORA_MODEMCONFIG;   // Modemstring Radiohead
+int frequency = HASV_RF_LORA_FREQ_HZ;            // HASviolet default settings for safe LoRa module init
+int spreadfactor = HASV_RF_LORA_SF;
+int codingrate4 = HASV_RF_LORA_CR;
+int bandwidth = HASV_RF_LORA_BANDWIDTH;
+int txpwr = HASV_RF_LORA_TXPWR;
 String mycall = "NOCALL";
 String myssid = "00";
-String mybeacon = "QRZ? QRZ? QRZ?";       // Baacon Message
-String dstcall = "BEACON";                // Destination Call ( BEACON )
-String dstssid = "99";                    // Destination SSID ( 99 )
+String mybeacon = "QRZ? QRZ? QRZ?";              // Baacon Message
+String dstcall = "BEACON";                       // Destination Call ( BEACON )
+String dstssid = "99";                           // Destination SSID ( 99 )
 
-String lastMsgRX = " ";                   // Last received message
-String payloadS = "";                     // LoRa message App layer payload
-String lastMsgTX = " ";                   // Last transmitted 
+String lastMsgRX = " ";                          // Last received message
+String payloadS = "";                            // LoRa message App layer payload
+String lastMsgTX = " ";                          // Last transmitted 
 
 // Create Servers
 AsyncWebServer server(HASV_WEB_PORT);
@@ -72,8 +68,7 @@ WebSocketsServer webSocket(HASV_WS_PORT);
 
 /// Split String
 
-String getSubString(String data, char separator, int index)
-{
+String getSubString(String data, char separator, int index) {
   int found = 0;
   int strIndex[] = {0, -1};
   int maxIndex = data.length()-1;
@@ -88,120 +83,35 @@ String getSubString(String data, char separator, int index)
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
 
-/// Core 1 Task (Web, WebSox, WiFi)
-void HasWebsox(void *pvParameters) {
-  Serial.print("800: Task *HasWebSox* on core ");
-  Serial.println(xPortGetCoreID());
-  while (true) {
-    webSocket.loop();
-  }
-}
-
-/// Core 0 Task (LoRa)
-void HasTRX(void *pvParameters) {
-  while (true) {
-    MyRX_Reset = false;
-    // Initialize LoRa
-    LoRa.setSyncWord(0xFF);                 // Set for LoRa Broadcast
-    LoRa.disableCrc();
-    LoRa.setFrequency(frequency);
-    #ifdef HASV_PABOOST
-    LoRa.setTxPower(txpwr,HASV_PABOOST);
-    #else
-    LoRa.setTxPower(txpwr);
-    #endif
-    if (modemconfig == "Bw125Cr45Sf128") {
-        LoRa.setSignalBandwidth(125000);
-        LoRa.setSpreadingFactor(7);
-        LoRa.setCodingRate4(8);
-      }
-      else if (modemconfig == "Bw500Cr45Sf128") {
-        LoRa.setSignalBandwidth(500000);
-        LoRa.setSpreadingFactor(7);
-        LoRa.setCodingRate4(5);
-      }
-      else if (modemconfig == "Bw31_25Cr48Sf512") {
-        LoRa.setSignalBandwidth(31250);
-        LoRa.setSpreadingFactor(7);
-        LoRa.setCodingRate4(8);
-      }
-      else if (modemconfig ==  "Bw125Cr48Sf4096") {
-        LoRa.setSignalBandwidth(125000);
-        LoRa.setSpreadingFactor(12);
-        LoRa.setCodingRate4(8);
-      }
-      else if (modemconfig ==  "Bw125Cr45Sf2048") {
-        LoRa.setSignalBandwidth(125000);
-        LoRa.setSpreadingFactor(8);
-        LoRa.setCodingRate4(5);
-      }
-      else {
-        LoRa.setSignalBandwidth(125000);
-        LoRa.setSpreadingFactor(7);
-        LoRa.setCodingRate4(8);
-    }
-    LoRa.receive();
-    Serial.print("CPU("); 
-    Serial.print(xPortGetCoreID());
-    Serial.println("): Task (re)start - HasTRX (LoRa)"); 
-    while (!MyRX_Reset) {
-      delay(5);
-      // try to parse packet
-      int packetSize = LoRa.parsePacket();
-      if (packetSize) {
-        lastMsgRX = "";
-        for (int i = 0; i < packetSize; i++)
-                  lastMsgRX = lastMsgRX + ((char)LoRa.read());
-        lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
-        Serial.println(lastMsgRX);
-        webSocket.broadcastTXT(lastMsgRX);
-      }
-    }
-  }
-}
-
-/// TX LoRa
-void sendLORA(String outgoing)
-{
-  LoRa.beginPacket();                     // start packet
-  LoRa.write(destinationLORA);            // add destination address
-  //LoRa.write(localaddressLORA);         // add sender address
-  //LoRa.write(outgoing.length());        // add payload length
-  LoRa.print(outgoing);                   // add payload
-  LoRa.endPacket();                       // finish packet and send it
-  #ifdef HASV_HAS_OLED
+void sendLORA(String outgoing) {
+  LoRa.beginPacket();                            // start packet
+  //LoRa.write(destinationLORA);                 // add destination address
+  //LoRa.write(localaddressLORA);                // add sender address
+  //LoRa.write(outgoing.length());               // add payload length
+  LoRa.print(outgoing);                          // add payload
+  LoRa.endPacket();                              // finish packet and send it
+  #ifdef HASV_OLED_YES
   OLEDme(outgoing);
   #endif
   Serial.print("TX:");
   Serial.println(outgoing);
-  lastMsgTX = outgoing;                   // Record last message sent
-  MyRX_Reset = true;
+  lastMsgTX = outgoing;                          // Record last message sent
 }
 
-/// RX LoRa
-void onReceiveLORA(int packetSize)
-{
-  // read packet
-  lastMsgRX = "";
-  for (int i = 0; i < packetSize; i++)
-  {
-    lastMsgRX = lastMsgRX + ((char)LoRa.read());
+void onReceiveLORA(int packetSize) {
+  if (packetSize == 0) return;                   // if there's no packet, return
+  String incoming = "";
+  while (LoRa.available()) {
+    incoming += (char)LoRa.read();
   }
-  lastMsgRX = "RX:" + lastMsgRX + "|RSSI: " + String(LoRa.packetRssi());
+  lastMsgRX = "";
+  lastMsgRX = "RX:" + incoming + "|RSSI: " + String(LoRa.packetRssi());
   Serial.print("RX:");
   Serial.println(lastMsgRX);
-  #ifdef HASV_HAS_OLED
+  #ifdef HASV_OLED_YES
   OLEDme(lastMsgRX);
   #endif
   webSocket.broadcastTXT(lastMsgRX);
-}
-
-/// Core 1 Task (Beacon LoRa)
-void HasBeacon(void *pvParameters) {
-  // read channel info then set
-  delay(8000);
-  webSocket.broadcastTXT("BEACON:" + lastMsgTX);
-  sendLORA(lastMsgTX);
 }
 
 /// WebServer
@@ -238,7 +148,6 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
       if (payloadS == "SET:RADIO:RESET") {
         // Reset Radio - HASTRX task
         webSocket.sendTXT(clientID, "ACK:RADIO:RESET");
-        MyRX_Reset = true;
       }
       
       // DUMP LORA
@@ -252,11 +161,11 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
       if (payloadS == "SET:BEACON:ON") {
         // turn me on
         webSocket.sendTXT(clientID, "ACK:BEACON:ON");
-        //vTaskResume(TaskBeacon);               // Add a beacon vtask to Core 1
+        //vTaskResume(TaskBeacon);                         // Add a beacon vtask to Core 1
       } else if (payloadS == "SET:BEACON:OFF") {
         // turn me off
         webSocket.sendTXT(clientID, "ACK:BEACON:OFF");
-        //vTaskSuspend(TaskBeacon);              // Kill beacon vtask to Core 1
+        //vTaskSuspend(TaskBeacon);                         // Kill beacon vtask to Core 1
       }
       
       //TXPWR
@@ -283,25 +192,8 @@ void onWebSocketEvent(uint8_t clientID, WStype_t type, uint8_t * payload, size_t
         String localfrequency = getSubString(payloadS,':',3);
         modemconfig = localmodemconfig;
         frequency = localfrequency.toInt();
-        MyRX_Reset = true;
       }
-
-      //CHANNEL ORG
-      //if (payloadS.indexOf("SET:TUNER:") >= 0) {
-      //  webSocket.sendTXT(clientID, "ACK:SET:TUNER:");
-      //  String localjunk = getSubString(payloadS,':',0);
-      //  String localjunk2 = getSubString(payloadS,':',1);
-      //  String localfrequency = getSubString(payloadS,':',2);
-      //  String localspreadfactor = getSubString(payloadS,':',3);
-      //  String localcodingrate4 = getSubString(payloadS,':',4);
-      //  String localbandwidth = getSubString(payloadS,':',5);   
-      // frequency = localfrequency.toInt();
-      //  spreadfactor = localspreadfactor.toInt();
-      // codingrate4 = localcodingrate4.toInt();
-      //  bandwidth = localbandwidth.toInt();
-      //  MyRX_Reset = true;
-      //}
-      
+    
       //TX
       if (payloadS.indexOf("TX:") >= 0) {
         // read channel info then set
@@ -347,9 +239,7 @@ void loadJsonFile() {
     }
     // Place JSON into Variables
     channel	= (const char*)doc["RADIO"]["channel"];
-		rfmodule = (const char*)doc["RADIO"]["rfmodule"];
 		modemconfig = (const char*)doc["RADIO"]["modemconfig"];
-		modem = int(doc["RADIO"]["modem"]);
     frequency = int(doc["RADIO"]["frequency"]);
     spreadfactor = int(doc["RADIO"]["spreadfactor"]);
     codingrate4 = int(doc["RADIO"]["codingrate4"]);
@@ -407,18 +297,51 @@ void initWebSockets() {
 }
 
 void initLoRa() {
-  SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_CS); 
-  LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);         
-  if (!LoRa.begin(911250000)) {
-    Serial.println("Starting LoRa failed!");
-    while (1); // if LoRa won't start just die with infinite loop
-  }
-  LoRa.setSpreadingFactor(7); // ranges from 6-12, default 7 see API docs. Changed for ver 0.1 Glacierjay
-  LoRa.setFrequency(911250000);
-  LoRa.setCodingRate4(8);
-  LoRa.setSignalBandwidth(125000);
-  LoRa.setTxPower(14, PA_OUTPUT_PA_BOOST_PIN);
+  SPI.begin(HASV_LORA_SCK, HASV_LORA_MISO, HASV_LORA_MOSI, HASV_LORA_CS); 
+  LoRa.setPins(HASV_LORA_CS, HASV_LORA_RST, HASV_LORA_IRQ);         
+  LoRa.begin(frequency);
+  //LoRa.setSyncWord(0xFF);                       // Set for LoRa Broadcast
+  //LoRa.disableCrc();
+  LoRa.setSpreadingFactor(spreadfactor);          // ranges from 6-12, default 7
+  LoRa.setFrequency(frequency);                   // default 911250000 Hz
+  LoRa.setCodingRate4(codingrate4);               // default is 8
+  LoRa.setSignalBandwidth(bandwidth);             // default is 125000 Hz
+  #ifdef HASV_PABOOST
+  LoRa.setTxPower(txpwr, HASV_PABOOST);
+  #else
+  LoRa.setTxPower(txpwr);
+  #endif
   Serial.println(" 600: LoRa initialized");
+  if (modemconfig == "Bw125Cr45Sf128") {
+      LoRa.setSignalBandwidth(125000);
+      LoRa.setSpreadingFactor(7);
+      LoRa.setCodingRate4(8);
+    }
+    else if (modemconfig == "Bw500Cr45Sf128") {
+      LoRa.setSignalBandwidth(500000);
+      LoRa.setSpreadingFactor(7);
+      LoRa.setCodingRate4(5);
+    }
+    else if (modemconfig == "Bw31_25Cr48Sf512") {
+      LoRa.setSignalBandwidth(31250);
+      LoRa.setSpreadingFactor(7);
+      LoRa.setCodingRate4(8);
+    }
+    else if (modemconfig ==  "Bw125Cr48Sf4096") {
+      LoRa.setSignalBandwidth(125000);
+      LoRa.setSpreadingFactor(12);
+      LoRa.setCodingRate4(8);
+    }
+    else if (modemconfig ==  "Bw125Cr45Sf2048") {
+      LoRa.setSignalBandwidth(125000);
+      LoRa.setSpreadingFactor(8);
+      LoRa.setCodingRate4(5);
+    }
+    else {
+      LoRa.setSignalBandwidth(125000);
+      LoRa.setSpreadingFactor(7);
+      LoRa.setCodingRate4(8);
+  }
 }
 
 //
@@ -437,32 +360,13 @@ void setup() {
   initWebServer();
   initWebSockets();
   initLoRa();
-  #ifdef HASV_HAS_OLED
+  #ifdef HASV_OLED_YES
   initOLED();
   logo();
   #endif
   Serial.println("INIT: COMPLETE");
   Serial.println("=====================================");
   Serial.println();
-  
-  // Create Task assignments
-  //
-  // HasTRX on Core 0
-  // hasWebsox on Core 1 butno need to assign since Loop on that core by default
-  //
-  xTaskCreatePinnedToCore(HasTRX, "HasTRX", 10000, NULL, 1, &TaskTRX, 0);
-  delay(500);
-  //
-  // HasBeacon on Core 1
-  //xTaskCreatePinnedToCore(HasBeacon, "HasBeacon", 10000, NULL, 1, &TaskBeacon, 1);
-  //
-  //vTaskSuspend(TaskBeacon);
-  //delay(500);
-  //
-  //  Websox on Core 1
-  //
-  //xTaskCreatePinnedToCore(HasWebsox, "HasWebsox", 10000, NULL, 1, &TaskWebsox, 1);
-  //delay(500);
 
   Serial.print("CPU("); 
   Serial.print(xPortGetCoreID());
@@ -478,5 +382,6 @@ void loop(){
   while (true) 
   {
     webSocket.loop();
+    onReceiveLORA(LoRa.parsePacket());
   }
 }

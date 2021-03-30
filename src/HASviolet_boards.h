@@ -4,10 +4,6 @@
 //     RELEASE:  20210328-0100
 //
 
-#include "WiFi.h"
-#include "WiFiClient.h"
-#include "LoRa.h"
-
 
 //
 // BOARDS
@@ -32,7 +28,7 @@
 #define HASV_PABOOST true
 #define HASV_LORA_BAND 911250000  // Band setting ( 868E6,915E6 )
 /// OLED
-#define HASV_HAS_OLED        //Uncomment Board or Peripheral features
+#define HASV_OLED_YES        //Uncomment Board or Peripheral features
 #define HASV_OLED_SCL 15     // GPIO15 -- OLED_SCL
 #define HASV_OLED_SDA 4      // GPIO4  -- OLED_SDA
 #define HASV_OLED_RST 16     // GPIO16 -- OLED_RST
@@ -66,7 +62,7 @@
 #define HASV_LORA_IRQ 26     // GPIO26 -- SX1276 IRQ (interrupt request)
 #define HASV_LORA_DI0 26     // GPIO26 -- SX1276 IRQ aka DI0
 /// OLED
-#define HASV_HAS_OLED_NONE       
+#define HASV_OLED_NONE       
 //#define HASV_OLED_CLOCK 22 
 //#define HASV_OLED_DATA 21 
 //#define HASV_OLED_RESET 16
@@ -141,7 +137,7 @@
 // OLED
 //
 
-//#if defined(HASV_HAS_OLED)                  // If no OLED then do nothing
+//#if defined(HASV_OLED_YES)                  // If no OLED then do nothing
 //Adafruit_SSD1306 display(HASV_OLED_WIDTH, HASV_OLED_HEIGHT, &Wire, HASV_OLED_RESET);
 //
 //#else

@@ -1,18 +1,20 @@
 //
 //  HASviolet_config.h
 //
-//     RELEASE:  20210328-0100
+//     RELEASE:  20210330-0700
 //
 
 
 //
 // BOARD SELECTION
-//
+// (Uncomment your board below)
 
-#define TTGO_T_BEAM
-// #define HELTEC_WIFI_LORA_32_V2
+//
+// #define TTGO_T_BEAM
+#define HELTEC_WIFI_LORA_32_V2
 // #define LoPy
 // #define LoPy4
+//
 
 
 //
@@ -46,13 +48,15 @@ const uint16_t HASV_WS_PORT = 8888;
 // LORA MODEM
 //
 
-#define HASV_RF_LORA_FREQ 911.25            // Frequency in MHz
-#define HASV_RF_LORA_FREQ_HZ 911250000      // Frequency in Hz
-#define HASV_RF_LORA_BW 125.0               // Bandwidth. Default is 125Khz
-#define HASV_RF_LORA_SF 7                   // Spread Factor. Default is 7
-#define HASV_RF_LORA_CR 8                   // Coding Rate. Default is 8
-#define HASV_RF_LORA_TXPWR 20               // Transmit Power (7-22)
-#define HASV_RF_LORA_GAIN 0                 // Antenna Gain correction
+#define HASV_RF_LORA_MODEMCONFIG "Bw125Cr45Sf128"   // ModemConfig from Radiohead
+#define HASV_RF_LORA_FREQ 911.25                    // Frequency in MHz
+#define HASV_RF_LORA_FREQ_HZ 911250000              // Frequency in Hz
+#define HASV_RF_LORA_BW 125.0                       // Bandwidth in KHz. Default is 125Khz
+#define HASV_RF_LORA_BANDWIDTH 125000               // Bandwidth in Hz. Default is 125000 Hz
+#define HASV_RF_LORA_SF 7                           // Spread Factor. Default is 7
+#define HASV_RF_LORA_CR 8                           // Coding Rate. Default is 8
+#define HASV_RF_LORA_TXPWR 20                       // Transmit Power (7-22)
+#define HASV_RF_LORA_GAIN 0                         // Antenna Gain correction
 
 
 //
