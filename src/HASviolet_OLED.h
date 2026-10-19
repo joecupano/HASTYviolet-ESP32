@@ -11,7 +11,9 @@
 #include "Adafruit_SSD1306.h"
 #include "HVDN_logo.h"
 
-Adafruit_SSD1306 display(HASV_OLED_WIDTH, HASV_OLED_HEIGHT, &Wire, HASV_OLED_RESET);
+Adafruit_SSD1306 display(HASV_OLED_WIDTH, HASV_OLED_HEIGHT, &Wire, HASV_OLED_RST);
+
+static bool oledOK = false;
 
 //
 // FUNCTIONS
@@ -21,6 +23,7 @@ Adafruit_SSD1306 display(HASV_OLED_WIDTH, HASV_OLED_HEIGHT, &Wire, HASV_OLED_RES
 // Display myOLEDmsg on OLED
 void OLEDme(String myOLEDmsg)
 {
+  if (!oledOK) return;
   myOLEDmsg = myOLEDmsg.substring(0,20);
   display.clearDisplay();
   //display.setTextAlignment(TEXT_ALIGN_LEFT);
@@ -36,6 +39,7 @@ void OLEDme(String myOLEDmsg)
 /// Display Logo on OLED
 void logo()
 {
+  if (!oledOK) return;
   display.clearDisplay();
   //display.drawBitmap(0,5,hvdnimg_width,hvdnimg_height,hvdnimg_bits);
   display.drawBitmap(0,5,hvdnimg_bits, hvdnimg_width,hvdnimg_height, SSD1306_WHITE);
@@ -44,11 +48,17 @@ void logo()
   display.clearDisplay();
 }
 
-void initOLED() {
-  // Start OLED with U8G2 Library
-  display.begin();
-  //display.setFont(ArialMT_Plain_10); 
-  Serial.println(" 600: OLED Initialized");
+bool initOLED() {
+  Wire.begin(HASV_OLED_SDA, HASV_OLED_SCL);
+  if (!display.begin(SSD1306_SWITCHCAPVCC, HASV_OLED_ADDR)) {
+    Serial.println(" 600: OLED init failed");
+    return false;
+  }
+  oledOK = true;
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
   display.clearDisplay();
   display.display();
+  Serial.println(" 600: OLED Initialized");
+  return true;
 }

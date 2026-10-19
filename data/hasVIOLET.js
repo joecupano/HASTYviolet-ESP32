@@ -600,13 +600,13 @@ socket.onopen = function(e) {
 };
 
 socket.onmessage = function(event) {
-	var wsRXD = event.data.split(':');
-	if (wsRXD[0] == "RX") {
-		rxwinMSG("RX: " + wsRXD[1]);
-		console.log("WSS: RX: " + wsRXD[1]);
-	} else if (wsRXD[0] == "RESPONSE") {
-		rxwinMSG("RX: " + wsRXD[1]);
-		console.log("WSS: RX: " + wsRXD[1]);
+	// Split on the first colon only so colons inside a message survive
+	var sep = event.data.indexOf(':');
+	var wsCMD = sep < 0 ? event.data : event.data.substring(0, sep);
+	var wsBODY = sep < 0 ? "" : event.data.substring(sep + 1);
+	if (wsCMD == "RX" || wsCMD == "RESPONSE") {
+		rxwinMSG("RX: " + wsBODY);
+		console.log("WSS: RX: " + wsBODY);
 	};
 
 	console.log(`WSS: [message] Data received from server: ${event.data}`);

@@ -1,64 +1,35 @@
 //
 //  HASviolet_config.h
 //
-//     RELEASE:  20210330-0700
-//
-
-
-//
-// BOARD SELECTION
-// (Uncomment your board below)
-
-//
-// #define TTGO_T_BEAM
-#define HELTEC_WIFI_LORA_32_V2
-// #define LoPy
-// #define LoPy4
-//
-
-
-//
-// GENERAL
+//  User configurable options. The board is selected in platformio.ini.
 //
 
 // Serial Console Baud Rate
 #define HASV_SERIAL_BAUD 115200
 
-// Asyncwebserver Port
-// #define HASV_WEB_PORT 8000
+// Webserver and Websocket ports
 const uint16_t HASV_WEB_PORT = 8000;
-// Websocket Port
-// #define HASV_WS_PORT 8888
 const uint16_t HASV_WS_PORT = 8888;
 
-// WiFi AP Creds
+// WiFi AP credentials (password must be at least 8 characters or the AP will not start)
 #define HASV_WIFI_APSSID "HASviolet"
-#define HASV_WIFI_APKEY "purplehaste"
-#define HASV_WIFI_APIP1 192
-#define HASV_WIFI_APIP2 168
-#define HASV_WIFI_APIP3 4
-#define HASV_WIFI_APIP4 1
+#define HASV_WIFI_APKEY "purple99"
 
-//Uncomment and edit the next two lines if connecting to existing WiFi network
-#define HASV_WIFI_SSID "Excelsior"
-#define HASV_WIFI_KEY "19144966520"
+// To join an existing WiFi network, uncomment and edit the next two lines.
+// If the connection fails the node falls back to its own AP.
+// Do not commit real credentials.
+//#define HASV_WIFI_SSID "your-ssid"
+//#define HASV_WIFI_KEY "your-password"
+#define HASV_WIFI_POLL_TRIES 20
+#define HASV_WIFI_POLL_DELAY 500    // ms
 
+// Default LoRa modem settings (overridden by data/hasVIOLET.json)
+#define HASV_RF_LORA_MODEMCONFIG "Bw125Cr45Sf128"
+#define HASV_RF_LORA_FREQ_HZ 911250000
+#define HASV_RF_LORA_BANDWIDTH 125000
+#define HASV_RF_LORA_SF 7
+#define HASV_RF_LORA_CR 8
+#define HASV_RF_LORA_TXPWR 10
 
-//
-// LORA MODEM
-//
-
-#define HASV_RF_LORA_MODEMCONFIG "Bw125Cr45Sf128"   // ModemConfig from Radiohead
-#define HASV_RF_LORA_FREQ 911.25                    // Frequency in MHz
-#define HASV_RF_LORA_FREQ_HZ 911250000              // Frequency in Hz
-#define HASV_RF_LORA_BW 125.0                       // Bandwidth in KHz. Default is 125Khz
-#define HASV_RF_LORA_BANDWIDTH 125000               // Bandwidth in Hz. Default is 125000 Hz
-#define HASV_RF_LORA_SF 7                           // Spread Factor. Default is 7
-#define HASV_RF_LORA_CR 8                           // Coding Rate. Default is 8
-#define HASV_RF_LORA_TXPWR 20                       // Transmit Power (7-22)
-#define HASV_RF_LORA_GAIN 0                         // Antenna Gain correction
-
-
-//
-// GPS
-//
+// Longest outgoing message in bytes
+#define HASV_MAX_PAYLOAD 254
