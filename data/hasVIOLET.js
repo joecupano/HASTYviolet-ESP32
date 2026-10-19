@@ -383,7 +383,7 @@ function btnSEND() {
 	msgPARSED = msgENTERED.split(" ");
 		
 	if (msgPARSED[0] === ".msgBECN") {                    /*  Set BEACON message  */
-		msgSUBPARSED = msgENTERED.replace('msgBECN ', '')
+		msgSUBPARSED = msgENTERED.replace('.msgBECN ', '')
 		myRadio.RADIO.mybeacon = msgSUBPARSED;
 		message = "BEACON = " + myRadio.RADIO.mybeacon;
 		rxwinMSG(message);
@@ -395,9 +395,9 @@ function btnSEND() {
 		msgPARTICLE = msgSUBPARSED.split("-");
 		myRadio.CONTACT.mycall = msgPARTICLE[0];
 		myRadio.CONTACT.myssid = msgPARTICLE[1];
-		message = "CALL = " + myRadio.CONTACT.myssid + "-" + myRadio.CONTACT.myssid;
+		message = "CALL = " + myRadio.CONTACT.mycall + "-" + myRadio.CONTACT.myssid;
 		rxwinMSG(message);
-		console.log("CMD: set: CALL =" + myRadio.CONTACT.myssid + "-" + myRadio.CONTACT.myssid);
+		console.log("CMD: set: CALL =" + myRadio.CONTACT.mycall + "-" + myRadio.CONTACT.myssid);
 		previous_operation = "myCALL";
 	
 	} else if (msgPARSED[0] === ".dstCALL") {                 /*  Set myRadio.CONTACT.dstcall and myRadio.CONTACT.dstssid  */
@@ -421,7 +421,7 @@ function btnSEND() {
 	} else if (msgPARSED[0] === ".macro2") {                 /*  Set Macro Button 2  */
 		msgSUBPARSED = msgENTERED.replace('.macro2 ', '')
 		myMacros[1] = msgSUBPARSED;
-		message = "MACRO3 = " + myMacros[1];
+		message = "MACRO2 = " + myMacros[1];
 		rxwinMSG(message);
 		console.log("CMD: set: PANEL: btnM2: M2 = " + myMacros[1]);
 		previous_operation = "M2";
@@ -429,7 +429,7 @@ function btnSEND() {
 	} else if (msgPARSED[0] === ".macro3") {                 /*  Set Macro Button 3  */
 		msgSUBPARSED = msgENTERED.replace('.macro3 ', '')
 		myMacros[2] = msgSUBPARSED;
-		message = "MACRO1 = " + myMacros[2];
+		message = "MACRO3 = " + myMacros[2];
 		rxwinMSG(message);
 		console.log("CMD: set: M3 = " + myMacros[2]);
 		previous_operation = "M3";
@@ -437,7 +437,7 @@ function btnSEND() {
 	} else if (msgPARSED[0] === ".macro4") {                 /*  Set Macro Button 4  */
 		msgSUBPARSED = msgENTERED.replace('.macro4 ', '')
 		myMacros[3] = msgSUBPARSED;
-		message = "MACRO1 = " + myMacros[3];
+		message = "MACRO4 = " + myMacros[3];
 		rxwinMSG(message);
 		console.log("CMD: set: M4 = " + myMacros[3]);
 		previous_operation = "M4";
