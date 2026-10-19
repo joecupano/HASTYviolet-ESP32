@@ -16,9 +16,14 @@ HASviolet ESP32 is a (very much) work-in-progress LoRa transceiver node that is 
 
 The quickest way to get started with HASviolet ESP32 is to
 
-- Buy a [HiLetgo ESP32 LoRa v2 device](https://www.amazon.com/gp/product/B07WHRS2XG/)
+- Buy a supported board: Heltec WiFi LoRa 32 V2 (also sold as HiLetgo ESP32 LoRa V2) or Heltec WiFi LoRa 32 V3
 - Download the [latest release](https://github.com/joecupano/hasty-esther/releases)
 - Upload the BIN file to the device using your favorite ESP32 Flash tool
+
+| Board | MCU | Radio | PlatformIO environment |
+|---|---|---|---|
+| Heltec WiFi LoRa 32 V2 | ESP32 | SX1276 | `heltec_wifi_lora_32_V2` (default) |
+| Heltec WiFi LoRa 32 V3 | ESP32-S3 | SX1262 | `heltec_wifi_lora_32_V3` |
 
 Alternatively, you can compile the firmware yourself by cloning this repo and following the instructions in the "Build It" section.
 
@@ -39,7 +44,11 @@ Once cloned, go ahead and start Visual Studio Code and open the folder of where 
 
 ![vsc-pio-view.png](docs/vscpio-view.png)
 
-Edit `platformio.ini` to suit your needs. If you are flashing a <a href="https://www.amazon.com/gp/product/B07WHRS2XG/" target="_blank">HiLetgo ESP32 LoRa v2 board</a> then you will probably not have to edit anything in `platformio.ini` but make sure <mark>`upload_port`</mark> is set to the correct device (such as<mark> /dev/ttyUSB0</mark>) which may vary depending on your operating system and other devices you have connected.
+Library and platform versions in `platformio.ini` are pinned; do not float them, as newer releases have broken earlier builds. The upload port is auto-detected. If it is not, set `upload_port` and `monitor_port` for your machine (typically `/dev/ttyUSB0` for V2 and `/dev/ttyACM0` for V3).
+
+User options (Wi-Fi, ports, default radio settings) are in `src/HASviolet_config.h`. Board pins are in `src/HASviolet_boards.h`. The board itself is chosen by the PlatformIO environment, not by editing a header.
+
+On Linux you may need serial access: `sudo usermod -aG dialout $USER`, then log out and back in.
 
 ## Build firmware
 
@@ -49,7 +58,7 @@ To test that the firmware is compiling correctly without flashing it to a device
 pio run
 ```
 
-This will compile all libraries and main firmware files. The resulting binary is stored as `.pio/build/heltec_wifi_lora_32_v2/firmware.bin`
+This will compile all libraries and main firmware files. The resulting binary is stored as `.pio/build/<environment>/firmware.bin`
 
 ## Flash firmware
 
@@ -67,11 +76,14 @@ followed by flashing the code:
 pio run -t upload
 ```
 
-By default, PlatformIO builds and flashes firmware for the <a href="https://www.amazon.com/gp/product/B07WHRS2XG/" target="_blank">HiLetgo ESP32 LoRa v2 board</a>. If you would like to build for another supported board, select the corresponding build environment. For example to build and flash the firmware and file system for the ESP32 TTG0 V1 board, use the following, 
+By default, PlatformIO builds and flashes firmware for the Heltec V2. To build for the V3, select its environment. For example, to flash the firmware and file system for the V3:
 
 ```
-pio run -e ttgo-lora32-v1 -t upload -t uploadfs
+pio run -e heltec_wifi_lora_32_V3 -t uploadfs
+pio run -e heltec_wifi_lora_32_V3 -t upload
 ```
+
+Wi-Fi: to join an existing network, uncomment `HASV_WIFI_SSID` and `HASV_WIFI_KEY` in `src/HASviolet_config.h` (do not commit real credentials). If the connection fails after about 10 seconds the node starts its own access point (`HASviolet`, password `purple99`; the password must be at least 8 characters). The IP address is printed on the serial console.
 
 ## Creating Binary for Release
 
@@ -98,15 +110,15 @@ pio device monitor
 After that, press the RST button on the ESP32 and you should see the following boot sequeunce;
 
 ```
-INIT: HASviolet ESP32
+INIT: HASviolet ESP32 (Heltec V2)
 =====================================
- 000: Setup running on core 1
+ 600: OLED Initialized
  100: SPIFFs initialized
- 300: WiFi CL initialized
+ 200: JSON loaded
+ 250: LoRa initialized
+ 300: WiFi AP, IP 192.168.4.1
  400: Webserver initialized
  500: Websockets initialized
- 600: OLED Initialized
- 700: HasTRX (LoRa) running on core 0
 INIT: COMPLETE
 =====================================
 ```
@@ -139,35 +151,46 @@ HASviolet ESP32 is made up of three parts;  radio (LoRa transceiver), server, an
 
 This is the sequence of initialization (<mark>INIT</mark>) events that occurs doing server (ESP32) device startup from within the <mark>void setup()</mark> loop;
 
-- **000** When the server (ESP32) device starts it initialize board specific routines and intiializes the serial port
+- **000** Serial port starts and the board is initialized (Vext power and OLED reset)
+
+- **600** If an OLED is present it is initialized and shows the HVDN logo from <mark>HVDN_logo.h</mark>
 
 - **100** SPIFF system initializes
 
 - **200** Loading of the <mark>hasVIOLET.json</mark> file from the SPIFFs image. The server is updated with the JSON configuration
 
-- **300** WiFi service starts first looking for an existing known network and if none then starst its own AP. The WiFi service will first try to connect to any <mark>WIFI_SSID</mark> and <mark>WIFI_KEY</mark> that was specified in <mark>HASviolet_config.h</mark> at compile time. If it cannot connect to an existgin WiFi specified, it will create a WiFI Access Point with the <mark>WIFI_APSSID</mark> and <mark>WIFI_APKEY</mark> specified in <mark>HASviolet_config.h</mark> at compile time.
+- **300** WiFi service starts first looking for an existing known network and if none (after about 10 seconds) then starts its own AP. The WiFi service will first try to connect to any <mark>WIFI_SSID</mark> and <mark>WIFI_KEY</mark> that was specified in <mark>HASviolet_config.h</mark> at compile time. If it cannot connect to an existgin WiFi specified, it will create a WiFI Access Point with the <mark>WIFI_APSSID</mark> and <mark>WIFI_APKEY</mark> specified in <mark>HASviolet_config.h</mark> at compile time.
 
 - **400** Webserver service is started with callbacks for each of the HTML, CSS. JS, JSON files. A favorico.ico is included in the SPIFFs image for browsers that (annoyingly) look for such image objects
 
 - **500** Websocket service is started with callback for processing websocket messages
 
-- **600** If OLED display is included, it is initialzied and will display the HVDN logo as compiled from <mark>HASviolet_logo.h</mark>
+- **250** The LoRa radio starts using the settings from the JSON file. If no radio is found the node reports the error and halts.
 
-- INIT is complete and LoRa services are started as a tasl on a separate core
+- INIT is complete and the radio task is started on core 0
 
 #### *FreeRTOS Magic*
 
 For many LoRa projects out there, the use case has the ESP32 as either a receiver or a transmitter but rarely both. If the use case does do both you will see alot deep dive into C/C++ in the coding yet still run into an issue with the hardware largely due to QA of the board manaufacturers. This is all because you never want LoRa receive process to miss a packet unless it is transmitting. But we also need WebSockets always running not missing a message. This led us down the path of experimenting pinning process to cores which involved touchin into the world of [FreeRTOS](https://www.freertos.org/) on the ESP32.
 
-The ESP32 has two cores with Core 1 being the default for all operations. What we did was within <mark>void setup()</mark>  is create a LoRa services task called <mark>HasTRX</mark> and pin it to Core 0. <mark>HasTRX</mark> runs nested loops with a LoRa receive function<mark> conditional inner-loop</mark> and an endless outer-loop. Meanwhile WebSockets is running in an endless-loop within <mark>void main()</mark> on Core 1.
+The ESP32 has two cores. The rule is that only one core touches each resource:
 
-When <mark>HasTRX</mark> sees a LoRa packet, it captures the message and invokes a callback that sends a WebSocket client broadcast. When a TX request comes from the (browser) client via WebSockets, the <mark>sendLORA</mark> function is calledt and once the message is transmit we trip the HasTRX <mark>conditional inner-loop</mark> to restart. We use this trick for if we want to change channels from the client which includes frequency, spreadfactor, coding, and bandwidth.
+- <mark>HasTRX</mark>, a task pinned to Core 0, is the only code that touches the radio (and OLED). It loops forever, sending anything queued for transmit and checking for received packets.
+- <mark>loop()</mark> on Core 1 is the only code that touches the WebSocket server.
+- The two exchange messages through two FreeRTOS queues: <mark>txQueue</mark> (browser to radio: messages, TX power, tuner changes) and <mark>rxQueue</mark> (radio to browser: received packets).
+
+Earlier versions transmitted from one core and received on the other, which corrupted radio state. Keeping all radio access in one task fixed that. A tuner change from the client re-initializes the radio inside <mark>HasTRX</mark>.
 
 Admittedly this is less than perfect but reflects our evolving education and persistence for a more perfect union of a true LoRa transciver with WebSockets.
 
 ### Radio
 
-Our focus has been on ESP32 boards with embedded LoRa modules either from [HopeRF]([LoRa module - HOPE MicroElectronics](https://www.hoperf.com/modules/lora/index.html)) or [Semtech](https://www.semtech.com/lora/lora-products) connected via SPI. For now we have kept with the LoRa libraries included with each board. We will revisit if enough pain ensues down the line. We've been contemplating some simple GPIO, pull-up resistor, and interrupt line inclusions to avoid some software hellholeshardware solution .
+Our focus has been on ESP32 boards with embedded LoRa modules either from [HopeRF]([LoRa module - HOPE MicroElectronics](https://www.hoperf.com/modules/lora/index.html)) or [Semtech](https://www.semtech.com/lora/lora-products) connected via SPI. Board differences are isolated in <mark>src/HASviolet_radio.h</mark>:
+
+- Heltec V2 (SX1276) uses the [sandeepmistry/LoRa](https://github.com/sandeepmistry/arduino-LoRa) library.
+- Heltec V3 (SX1262) uses [RadioLib](https://github.com/jgromes/RadioLib).
+
+Both use the private LoRa sync word, CRC on, and PA_BOOST on the V2. TX power is limited to what each radio supports (V2: 2-20 dBm, V3: -9 to 22 dBm). Outgoing messages are limited to 254 bytes.
 
 ### Client
 
@@ -200,5 +223,6 @@ pio run -t uploadfs
 Some useful hints for developing this firmware using platformio are included here,
 
 - It may be a good idea to delete the libdeps folder prior to rebuilding, as old, out-dated libraries could case conflits. To do this, `rm -rf .pio/libdeps`.
+- Keep every dependency listed with an exact version in `platformio.ini`. Do not mix V2 and V3 library assumptions: current Heltec libraries target V3 only.
 - If you would like to make changes to a specific library you can clone the library into the `firmware/lib` folder that is created after running `pio run` and then comment it out or remove it from the `lib_deps` list in the `platformio.ini` file.
 - If you're including new libraries in the firmware, for PlatformIO, you wil need to add them to `platformio.ini` under `lib_deps`.
